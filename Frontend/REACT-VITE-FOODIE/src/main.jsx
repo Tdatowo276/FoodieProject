@@ -6,7 +6,6 @@ import {
   RouterProvider,
 } from "react-router-dom";
 import LoginPage from './pages/LoginPage.jsx';
-import './assets/css/global.css'
 import HomePage from './pages/HomePage.jsx';
 import ProductsPage from './pages/ProductsPage.jsx'
 import RegisterPage from './pages/RegisterPage.jsx'
