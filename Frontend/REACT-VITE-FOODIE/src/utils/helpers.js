@@ -17,30 +17,38 @@ const removeAccents = (s) =>
 const delay = (ms = 400) => new Promise((r) => setTimeout(r, ms));
 
 const storage = {
-    get(key, fallback = null) {
-        try {
-            const raw = localStorage.getItem(key);
-            return raw ? JSON.parse(raw) : fallback;
-        } catch {
-            return fallback;
-        }
-    },
-    set(key, value) {
-        try {
-            localStorage.setItem(key, JSON.stringify(value));
-        } catch {
-            /* bỏ qua nếu trình duyệt chặn storage */
-        }
-    },
-    remove(key) {
-        try {
-            localStorage.removeItem(key);
-        } catch {
-            /* bỏ qua */
-        }
-    },
+  get(key, fallback = null) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return fallback;
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return raw; // Trả về chuỗi thuần nếu không phải JSON (dành cho TOKEN_KEY)
+      }
+    } catch {
+      return fallback;
+    }
+  },
+  set(key, value) {
+    try {
+      // Nếu value là chuỗi thuần (như Token), lưu thẳng string. Nếu là Object/Array thì JSON.stringify
+      const data = typeof value === 'string' ? value : JSON.stringify(value);
+      localStorage.setItem(key, data);
+    } catch {
+      /* bỏ qua nếu trình duyệt chặn storage */
+    }
+  },
+  remove(key) {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      /* bỏ qua */
+    }
+  },
 };
-
+const API_ORIGIN = new URL(import.meta.env.VITE_API_URL).origin;
+export const resolveImageUrl = (url) => (url?.startsWith("/uploads/") ? API_ORIGIN + url : url);
 
 export {
     TOKEN_KEY,

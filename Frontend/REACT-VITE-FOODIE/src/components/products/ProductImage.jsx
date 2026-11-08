@@ -1,9 +1,10 @@
+import { resolveImageUrl } from "../../utils/helpers";
 // Hiện ảnh thật nếu API có imageUrl, nếu không thì dùng emoji
 const ProductImage = ({ product, height = 170, radius = 0, fontSize }) => {
-    if (product.imageUrl) {
+    if (resolveImageUrl(product.imageUrl)) {
         return (
             <img
-                src={product.imageUrl}
+                src={resolveImageUrl(product.imageUrl)}
                 alt={product.name}
                 style={{ width: "100%", height, objectFit: "cover", display: "block", borderRadius: radius }}
             />
