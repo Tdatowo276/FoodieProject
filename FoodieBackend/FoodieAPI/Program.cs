@@ -79,13 +79,25 @@ builder.Services.Configure<FormOptions>(options => options.MultipartBodyLengthLi
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-    options.AddPolicy("auth", httpContext =>
+    // Đăng nhập / đăng ký / đổi mật khẩu: 10 lần / phút / IP (chống dò mật khẩu)
+    options.AddPolicy(RateLimitPolicies.Auth, httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 10,
                 Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+
+    // Gửi góp ý (không cần đăng nhập): 5 lần / 10 phút / IP (chống spam)
+    options.AddPolicy(RateLimitPolicies.Feedback, httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(10),
                 QueueLimit = 0
             }));
 });
@@ -101,6 +113,7 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IFeedbackService, FeedbackService>();
 builder.Services.AddScoped<IStatsService, StatsService>();
 
 // Tài liệu REST API: /swagger (xem Common/SwaggerSetup.cs)
@@ -193,6 +206,7 @@ app.MapAuth();
 app.MapProducts();
 app.MapOrders();
 app.MapProfile();
+app.MapFeedback();
 app.MapAdmin();
 
 // MVC: khu Admin ( /Admin/{controller}/{action}/{id?} ) và trang lỗi chung

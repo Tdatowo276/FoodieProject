@@ -1,0 +1,59 @@
+@model FeedbackListViewModel
+@using FoodieAPI.Models
+
+@if (Model.Result.Items.Count == 0)
+{
+    <div class="card card-body text-center text-secondary shadow-sm">Chưa có góp ý nào phù hợp.</div>
+    return;
+}
+
+<div class="d-flex flex-column gap-3">
+    @foreach (var f in Model.Result.Items)
+    {
+        <div class="card shadow-sm @(f.IsRead ? "" : "border-danger")">
+            <div class="card-body">
+                <div class="d-flex flex-wrap justify-content-between gap-2 mb-2">
+                    <div class="min-w-0">
+                        <span class="fw-semibold">@f.Name</span>
+                        @if (!f.IsRead) { <span class="badge text-bg-danger ms-1">Mới</span> }
+                        @if (f.FromMember) { <span class="badge text-bg-light border ms-1">Thành viên</span> }
+                        <div class="small text-secondary text-break">
+                            <i class="bi bi-envelope me-1"></i>@f.Email
+                            @if (f.Phone is not null) { <span class="ms-2"><i class="bi bi-telephone me-1"></i>@f.Phone</span> }
+                        </div>
+                    </div>
+                    <div class="text-end small text-secondary">
+                        <span class="badge text-bg-secondary">@FeedbackTopics.Label(f.Topic)</span>
+                        <div>@AdminFormat.VnTime(f.CreatedAt)</div>
+                        @if (f.Rating is int stars)
+                        {
+                            <div class="text-warning" aria-label="@stars trên 5 sao">
+                                @for (var i = 1; i <= 5; i++) { <i class="bi @(i <= stars ? "bi-star-fill" : "bi-star")"></i> }
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                @* Nội dung do khách nhập: Razor tự mã hóa HTML => không chạy được mã độc (chống XSS) *@
+                <p class="mb-3" style="white-space: pre-line">@f.Message</p>
+
+                <div class="d-flex flex-wrap gap-2">
+                    <form asp-action="SetRead" asp-route-id="@f.Id" method="post">
+                        <input type="hidden" name="read" value="@(f.IsRead ? "false" : "true")" />
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi @(f.IsRead ? "bi-envelope" : "bi-envelope-open") me-1"></i>@(f.IsRead ? "Đánh dấu chưa đọc" : "Đánh dấu đã đọc")
+                        </button>
+                    </form>
+                    <a class="btn btn-sm btn-outline-primary" href="mailto:@f.Email?subject=@Uri.EscapeDataString("Phản hồi góp ý Foodie")">
+                        <i class="bi bi-reply me-1"></i>Trả lời qua email
+                    </a>
+                    <form asp-action="Delete" asp-route-id="@f.Id" method="post" data-confirm="Xóa góp ý của @f.Name?">
+                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>Xóa</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<partial name="_Pager" model="Model.Pager" />

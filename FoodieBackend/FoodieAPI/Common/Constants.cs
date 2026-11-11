@@ -57,6 +57,12 @@ namespace FoodieAPI.Common
         };
     }
 
+    public static class RateLimitPolicies
+    {
+        public const string Auth = "auth";
+        public const string Feedback = "feedback";
+    }
+
     public static class Limits
     {
         public const int MaxImageBytes = 2 * 1024 * 1024;   // 2MB

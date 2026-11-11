@@ -19,6 +19,8 @@ import NotFoundPage from './pages/NotFoundPage';
 import MyOrdersPage from './pages/MyOrdersPage';
 import ProfilePage from './pages/ProfilePage';
 import AboutPage from './pages/AboutPage';
+import { ContactProvider } from './components/contact/ContactProvider';
+import FloatingContact from './components/contact/FloatingContact';
 
 const FoodieApp = () => {
   const { message } = AntApp.useApp();
@@ -141,6 +143,8 @@ const FoodieApp = () => {
   }
 
   return (
+    // ContactProvider: nút liên hệ nổi, bản đồ, hộp gọi điện / góp ý dùng chung cho mọi trang
+    <ContactProvider user={user}>
     <Layout style={{ minHeight: '100vh', background: '#fff' }}>
       <AppHeader
         view={view}
@@ -204,7 +208,9 @@ const FoodieApp = () => {
           ]}
         />
       </Modal>
+      <FloatingContact />
     </Layout>
+    </ContactProvider>
   );
 };
 

@@ -144,6 +144,20 @@ namespace FoodieAPI.Areas.Admin.Models
         });
     }
 
+    // ===================== Góp ý =====================
+
+    public class FeedbackListViewModel
+    {
+        public FeedbackQuery Query { get; init; } = new();
+        public Paged<FeedbackDto> Result { get; init; } = new([], 0, 1, 10);
+
+        public PagerModel Pager => new(Result.Page, Result.PageSize, Result.Total, new Dictionary<string, string?>
+        {
+            ["keyword"] = Query.Keyword,
+            ["unread"] = Query.Unread == true ? "true" : null
+        });
+    }
+
     // ===================== Dashboard =====================
 
     public class DashboardViewModel

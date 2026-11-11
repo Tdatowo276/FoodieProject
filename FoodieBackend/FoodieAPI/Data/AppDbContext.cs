@@ -13,6 +13,7 @@ namespace FoodieAPI.Data
         public DbSet<Product> Products => Set<Product>();
         public DbSet<Order> Orders => Set<Order>();
         public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+        public DbSet<Feedback> Feedbacks => Set<Feedback>();
 
         protected override void ConfigureConventions(ModelConfigurationBuilder builder)
         {
@@ -45,6 +46,14 @@ namespace FoodieAPI.Data
                 // Lịch sử đơn hàng phải được giữ lại: không cho xóa user khi user đã có đơn
                 e.HasOne(o => o.User).WithMany(u => u.Orders)
                     .HasForeignKey(o => o.UserId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Góp ý vẫn giữ lại khi tài khoản bị xóa (UserId => NULL)
+            model.Entity<Feedback>(e =>
+            {
+                e.HasIndex(f => new { f.IsRead, f.CreatedAt });
+                e.HasOne(f => f.User).WithMany()
+                    .HasForeignKey(f => f.UserId).OnDelete(DeleteBehavior.SetNull);
             });
 
             // Xóa món khỏi thực đơn thì đơn cũ vẫn còn, ProductId chuyển thành NULL
