@@ -29,8 +29,20 @@ namespace FoodieAPI.Data
                 });
             }
 
+            if (!await db.Categories.AnyAsync())
+            {
+                db.Categories.AddRange(
+                    new Category { Name = "Đồ ăn nhanh", Description = "Burger, pizza, gà rán và các món ăn nhanh" },
+                    new Category { Name = "Món chính", Description = "Cơm, phở, mì và các món no bụng" },
+                    new Category { Name = "Đồ uống", Description = "Trà, cà phê, sinh tố" },
+                    new Category { Name = "Tráng miệng", Description = "Kem, bánh ngọt, flan" });
+                await db.SaveChangesAsync();
+            }
+
             if (!await db.Products.AnyAsync())
             {
+                var categories = await db.Categories.ToDictionaryAsync(c => c.Name);
+
                 var seed = new (string Name, string Category, long Price, double Rating, bool Featured, string Description)[]
                 {
                     ("Burger bò phô mai", "Đồ ăn nhanh", 59000, 4.8, true, "Bò nướng than, phô mai cheddar tan chảy, rau tươi và sốt đặc biệt."),
@@ -52,7 +64,7 @@ namespace FoodieAPI.Data
                 {
                     var product = new Product
                     {
-                        Category = s.Category,
+                        Category = categories[s.Category],
                         Price = s.Price,
                         Rating = s.Rating,
                         IsFeatured = s.Featured,

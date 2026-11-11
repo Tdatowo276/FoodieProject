@@ -1,5 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.JsonWebTokens;
 using FoodieAPI.Data;
 using FoodieAPI.Models;
 using FoodieAPI.DTOs;
@@ -10,27 +11,32 @@ namespace FoodieAPI.Endpoints
     public static class OrderEndpoints
     {
         public static void MapOrders(this IEndpointRouteBuilder app) =>
-            app.MapPost("/api/orders", Create).RequireAuthorization();
+            app.MapPost("/api/orders", Create).RequireAuthorization().Validate<OrderRequest>();
 
-        private static async Task<IResult> Create(OrderRequest req, AppDbContext db)
+        private static async Task<IResult> Create(
+            OrderRequest req, ClaimsPrincipal principal, AppDbContext db, ILoggerFactory loggerFactory)
         {
-            var items = req.Items ?? new List<OrderItemRequest>();
-            var receiver = (req.ReceiverName ?? "").Trim();
-            var phone = (req.Phone ?? "").Trim();
-            var address = (req.Address ?? "").Trim();
+            // Định dạng đã được Data Annotations của OrderRequest kiểm tra (ValidationFilter)
+            var items = req.Items!;
+            var receiver = req.ReceiverName!.Trim();
+            var phone = req.Phone!.Trim();
+            var address = req.Address!.Trim();
             var note = string.IsNullOrWhiteSpace(req.Note) ? null : req.Note.Trim();
-            var payment = req.PaymentMethod ?? "";
+            var payment = req.PaymentMethod!;
 
             new Validator()
-                .Check(items.Count is >= 1 and <= 50, "items", "Giỏ hàng trống hoặc vượt quá 50 món.")
-                .Check(items.All(i => i.ProductId > 0 && i.Quantity is >= 1 and <= 99),
-                    "items", "Mã món hoặc số lượng không hợp lệ (mỗi món từ 1 đến 99 phần).")
-                .Check(receiver.Length is >= 2 and <= 100, "receiverName", "Tên người nhận cần từ 2 đến 100 ký tự.")
-                .Check(Patterns.Phone.IsMatch(phone), "phone", "Số điện thoại chưa đúng (ví dụ 0901234567).")
-                .Check(address.Length is >= 1 and <= 250, "address", "Vui lòng nhập địa chỉ giao hàng (tối đa 250 ký tự).")
-                .Check((note?.Length ?? 0) <= 500, "note", "Ghi chú tối đa 500 ký tự.")
-                .Check(PaymentMethods.IsValid(payment), "paymentMethod", "Phương thức thanh toán không hợp lệ.")
+                .Check(receiver.Length >= 2, "receiverName", "Tên người nhận cần từ 2 đến 100 ký tự.")
+                .Check(address.Length >= 1, "address", "Vui lòng nhập địa chỉ giao hàng.")
                 .ThrowIfInvalid();
+
+            // Người đặt lấy từ token do server ký, không tin dữ liệu client gửi lên
+            if (!int.TryParse(principal.FindFirstValue(JwtRegisteredClaimNames.Sub), out var userId))
+                throw new ApiException(401, "Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.");
+
+            var user = await db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId)
+                ?? throw new ApiException(401, "Tài khoản không còn tồn tại. Vui lòng đăng nhập lại.");
+            if (user.IsLocked)
+                throw new ApiException(403, "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
 
             var lines = items
                 .GroupBy(i => i.ProductId)
@@ -40,9 +46,10 @@ namespace FoodieAPI.Endpoints
             if (lines.Any(l => l.Quantity > 99))
                 throw ApiException.Validation("items", "Mỗi món tối đa 99 phần.");
 
+            // Chỉ cho đặt món thuộc danh mục đang hoạt động; giá lấy từ CSDL, không tin giá client gửi
             var ids = lines.Select(l => l.ProductId).ToList();
             var products = await db.Products.AsNoTracking()
-                .Where(p => ids.Contains(p.Id))
+                .Where(p => ids.Contains(p.Id) && p.Category.IsActive)
                 .ToDictionaryAsync(p => p.Id);
 
             if (lines.Any(l => !products.ContainsKey(l.ProductId)))
@@ -50,6 +57,7 @@ namespace FoodieAPI.Endpoints
 
             var order = new Order
             {
+                UserId = userId,
                 CustomerName = receiver,
                 Phone = phone,
                 Address = address,
@@ -75,6 +83,10 @@ namespace FoodieAPI.Endpoints
 
             db.Orders.Add(order);
             await db.SaveChangesAsync();
+
+            loggerFactory.CreateLogger("FoodieAPI.Orders").LogInformation(
+                "Người dùng {UserId} tạo đơn {OrderCode}, tổng {Total}đ, {ItemCount} món",
+                userId, order.Code, order.Total, order.Items.Count);
 
             return Results.Json(
                 new OrderCreated(order.Code, order.Total, order.Status, order.CreatedAt),

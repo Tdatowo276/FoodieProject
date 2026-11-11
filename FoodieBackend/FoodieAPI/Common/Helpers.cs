@@ -63,8 +63,10 @@ namespace FoodieAPI.Common
 
     public static class Mappings
     {
+        // Yêu cầu đã nạp p.Category (dùng .Include(p => p.Category) khi truy vấn)
         public static ProductDto ToDto(this Product p) =>
-            new(p.Id, p.Name, p.Category, p.Price, p.Rating, p.Description, p.ImageUrl, p.IsFeatured, p.CreatedAt);
+            new(p.Id, p.Name, p.CategoryId, p.Category.Name, p.Price, p.Rating,
+                p.Description, p.ImageUrl, p.IsFeatured, p.CreatedAt);
 
         public static AdminOrderDto ToAdminDto(this Order o) =>
             new(o.Code, o.CustomerName, o.CreatedAt, o.Total, o.PaymentMethod, o.Status);

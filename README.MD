@@ -79,7 +79,6 @@ dotnet user-secrets set "Seed:AdminPassword" "<mật khẩu admin, tối thiểu
 | `ConnectionStrings:Default` | ✅ | Chuỗi kết nối SQL Server |
 | `Jwt:Key` | ✅ | Khóa ký token JWT, tối thiểu 32 byte |
 | `Seed:AdminPassword` | ✅ (lần chạy đầu) | Mật khẩu của tài khoản admin `admin@foodie.vn` được tạo tự động |
-| `Database:Provider` | ❌ | `SqlServer` (mặc định) hoặc `Sqlite` |
 
 Trên môi trường **Production**, đặt các giá trị trên bằng biến môi trường, thay `:` bằng `__`. Ví dụ: `ConnectionStrings__Default`, `Jwt__Key`.
 

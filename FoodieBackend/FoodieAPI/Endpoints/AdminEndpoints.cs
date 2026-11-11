@@ -17,8 +17,8 @@ namespace FoodieAPI.Endpoints
             admin.MapGet("/orders", Orders);
 
             admin.MapGet("/products", ListProducts);
-            admin.MapPost("/products", CreateProduct);
-            admin.MapPut("/products/{id:int}", UpdateProduct);
+            admin.MapPost("/products", CreateProduct).Validate<ProductRequest>();
+            admin.MapPut("/products/{id:int}", UpdateProduct).Validate<ProductRequest>();
             admin.MapDelete("/products/{id:int}", DeleteProduct);
 
             admin.MapPost("/uploads", Upload).DisableAntiforgery();
@@ -86,14 +86,19 @@ namespace FoodieAPI.Endpoints
             return Results.Ok(new Paged<AdminOrderDto>(items.Select(o => o.ToAdminDto()).ToList(), total, p, size));
         }
 
-        private static async Task<IResult> ListProducts(AppDbContext db, int? page, int? pageSize, string? category, string? keyword) =>
-            Results.Ok(await ProductQueries.PagedAsync(db, category, keyword, page, pageSize));
+        // Admin thấy mọi món, kể cả món thuộc danh mục đang ẩn
+        private static async Task<IResult> ListProducts(
+            AppDbContext db, int? page, int? pageSize, int? categoryId, string? category, string? keyword)
+        {
+            var query = ProductQueries.Filter(
+                db.Products.AsNoTracking().Include(p => p.Category), categoryId, category, keyword);
+            return Results.Ok(await ProductQueries.PagedAsync(query, page, pageSize));
+        }
 
         private static async Task<IResult> CreateProduct(ProductRequest req, AppDbContext db)
         {
-            var input = ParseProduct(req);
             var product = new Product { CreatedAt = DateTime.UtcNow };
-            Apply(product, input);
+            await ApplyAsync(product, req, db);
 
             db.Products.Add(product);
             await db.SaveChangesAsync();
@@ -103,11 +108,10 @@ namespace FoodieAPI.Endpoints
 
         private static async Task<IResult> UpdateProduct(int id, ProductRequest req, AppDbContext db)
         {
-            var input = ParseProduct(req);
             var product = await db.Products.FirstOrDefaultAsync(p => p.Id == id)
                 ?? throw new ApiException(404, "Không tìm thấy món ăn. Món có thể đã bị xóa.");
 
-            Apply(product, input);
+            await ApplyAsync(product, req, db);
             await db.SaveChangesAsync();
 
             return Results.Ok(product.ToDto());
@@ -124,32 +128,27 @@ namespace FoodieAPI.Endpoints
             return Results.NoContent();
         }
 
-        private static ProductInput ParseProduct(ProductRequest r)
+        // Định dạng đã được Data Annotations của ProductRequest kiểm tra (ValidationFilter).
+        // Ở đây chỉ kiểm tra các quy tắc cần tới CSDL hoặc cần dữ liệu đã chuẩn hóa.
+        private static async Task ApplyAsync(Product product, ProductRequest r, AppDbContext db)
         {
-            var name = (r.Name ?? "").Trim();
-            var category = (r.Category ?? "").Trim();
-            var description = string.IsNullOrWhiteSpace(r.Description) ? null : r.Description.Trim();
-            var imageUrl = string.IsNullOrWhiteSpace(r.ImageUrl) ? null : r.ImageUrl.Trim();
+            var name = r.Name!.Trim();
+            if (name.Length < 2)
+                throw ApiException.Validation("name", "Tên món cần từ 2 đến 80 ký tự.");
 
-            new Validator()
-                .Check(name.Length is >= 2 and <= 80, "name", "Tên món cần từ 2 đến 80 ký tự.")
-                .Check(ProductCategories.IsValid(category), "category", "Danh mục không hợp lệ.")
-                .Check(r.Price is >= 1000 and <= 10_000_000, "price", "Giá phải từ 1.000đ đến 10.000.000đ.")
-                .Check((description?.Length ?? 0) <= 300, "description", "Mô tả tối đa 300 ký tự.")
-                .Check(imageUrl is null || Patterns.UploadedImage.IsMatch(imageUrl),
-                    "imageUrl", "Đường dẫn ảnh không hợp lệ. Hãy dùng ảnh đã tải lên từ hệ thống.")
-                .ThrowIfInvalid();
+            var category = await db.Categories.FirstOrDefaultAsync(c => c.Id == r.CategoryId)
+                ?? throw ApiException.Validation("categoryId", "Danh mục không tồn tại.");
 
-            return new ProductInput(name, category, r.Price!.Value, description, imageUrl);
-        }
+            // Chỉ chặn khi chọn MỚI một danh mục đang ẩn; món cũ vẫn sửa được dù danh mục đã ẩn
+            if (!category.IsActive && product.CategoryId != category.Id)
+                throw ApiException.Validation("categoryId", "Danh mục này đang bị ẩn, hãy chọn danh mục khác.");
 
-        private static void Apply(Product product, ProductInput input)
-        {
-            product.SetName(input.Name);
-            product.Category = input.Category;
-            product.Price = input.Price;
-            product.Description = input.Description;
-            product.ImageUrl = input.ImageUrl;
+            product.SetName(name);
+            product.Category = category;
+            product.Price = r.Price!.Value;
+            product.Description = string.IsNullOrWhiteSpace(r.Description) ? null : r.Description.Trim();
+            product.ImageUrl = string.IsNullOrWhiteSpace(r.ImageUrl) ? null : r.ImageUrl.Trim();
+            product.IsFeatured = r.IsFeatured;
         }
 
         private static async Task<IResult> Upload(IFormFile? file, IWebHostEnvironment env)

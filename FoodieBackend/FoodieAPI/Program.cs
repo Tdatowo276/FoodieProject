@@ -16,24 +16,12 @@ Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 
-// 1. Cơ sở dữ liệu
+// 1. Cơ sở dữ liệu (SQL Server)
 // Không viết cứng chuỗi kết nối trong mã nguồn. Giá trị được lấy từ:
 //   - Development: User Secrets   (dotnet user-secrets set "ConnectionStrings:Default" "...")
 //   - Production:  biến môi trường ConnectionStrings__Default
-var dbProvider = config["Database:Provider"] ?? "SqlServer";
 var connectionString = RequireSetting(config, "ConnectionStrings:Default");
-
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    switch (dbProvider.ToLowerInvariant())
-    {
-        case "sqlserver": options.UseSqlServer(connectionString); break;
-        case "sqlite": options.UseSqlite(connectionString); break;
-        default:
-            throw new InvalidOperationException(
-                $"Database:Provider '{dbProvider}' không hợp lệ. Giá trị hợp lệ: SqlServer, Sqlite.");
-    }
-});
+builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
 
 // 2. JWT
 // Khóa ký token bắt buộc phải được cấu hình (User Secrets / biến môi trường Jwt__Key), tối thiểu 32 byte.
@@ -106,7 +94,8 @@ if (app.Environment.IsDevelopment())
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await db.Database.EnsureCreatedAsync();
+    // Áp dụng các EF Core migration còn thiếu (tự tạo database nếu chưa có)
+    await db.Database.MigrateAsync();
 
     if (app.Environment.IsDevelopment() || config.GetValue<bool>("Seed:Enabled"))
         await Seeder.RunAsync(db, config);
