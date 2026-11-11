@@ -1,124 +1,133 @@
-import React, { useState, useEffect } from 'react';
-import { Row, Col, Typography, Space, Button, Card, Flex, Avatar, Alert, Spin } from 'antd';
-import { CarOutlined, ClockCircleOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Typography, Input, Alert, Spin, Empty, Button, Flex } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
 import Container from '../components/Container';
 import ProductGrid from '../components/products/ProductGrid';
-import { productService } from '../services/product.service';
-import { formatVND, FREE_SHIP_FROM, PRIMARY, display } from '../utils/helpers';
+import BannerCarousel from '../components/home/BannerCarousel';
+import MenuTabs from '../components/home/MenuTabs';
+import { productService, categoryService } from '../services/product.service';
+import { PRIMARY, PRIMARY_DARK, display } from '../utils/helpers';
 
 const { Title, Text } = Typography;
+const FEATURED_KEY = 'noi-bat';
 
-const HomePage = ({ setView, onAdd, onOpen }) => {
+/**
+ * Trang chủ: banner → ô tìm món → thanh tab danh mục → mỗi danh mục một khu.
+ *  - onSearch(keyword): mở trang Thực đơn với từ khóa đã nhập
+ *  - user: ẩn lời mời đăng ký khi đã đăng nhập
+ */
+const HomePage = ({ setView, onAdd, onOpen, onSearch, user }) => {
     const [featured, setFeatured] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+    const [error, setError] = useState('');
+    const [active, setActive] = useState(FEATURED_KEY);
+    const [keyword, setKeyword] = useState('');
 
     useEffect(() => {
         let ignore = false;
-        productService
-            .getFeatured()
-            .then((data) => !ignore && setFeatured(data.slice(0, 8)))
+        Promise.all([productService.getFeatured(), categoryService.getAll(), productService.getAll()])
+            .then(([f, c, p]) => {
+                if (ignore) return;
+                setFeatured(f);
+                setCategories(c);
+                setProducts(p);
+            })
             .catch((e) => !ignore && setError(e.message))
             .finally(() => !ignore && setLoading(false));
-        return () => {
-            ignore = true;
-        };
+        return () => { ignore = true; };
     }, []);
 
-    const perks = [
-        { icon: <CarOutlined />, title: `Miễn phí giao từ ${formatVND(FREE_SHIP_FROM)}`, text: "Nội thành trong 30 phút" },
-        { icon: <ClockCircleOutlined />, title: "Nấu mới khi có đơn", text: "Không hâm lại, không để sẵn" },
-        { icon: <SafetyCertificateOutlined />, title: "Đổi món nếu chưa ưng", text: "Báo trong 15 phút sau khi nhận" },
-    ];
+    // Mỗi danh mục một khu; bỏ danh mục chưa có món
+    const sections = useMemo(() => {
+        const list = [];
+        if (featured.length > 0) list.push({ key: FEATURED_KEY, label: 'Nổi bật', items: featured });
+        for (const c of categories) {
+            const items = products.filter((p) => p.categoryId === c.id);
+            if (items.length > 0) list.push({ key: `danh-muc-${c.id}`, label: c.name, items });
+        }
+        return list;
+    }, [featured, categories, products]);
+
+    const tabs = useMemo(() => sections.map(({ key, label }) => ({ key, label })), [sections]);
+
+    const search = () => {
+        const kw = keyword.trim();
+        if (kw) onSearch(kw);
+    };
 
     return (
         <>
-            <section style={{ background: "linear-gradient(120deg, #E8321E 0%, #F2561C 55%, #FF8A00 100%)", color: "#fff", overflow: "hidden" }}>
-                <Container style={{ padding: "56px 20px 80px" }}>
-                    <Row gutter={[32, 24]} align="middle">
-                        <Col xs={24} md={13}>
-                            <Title level={1} style={{ ...display, color: "#fff", fontSize: "clamp(38px, 6vw, 66px)", lineHeight: 1.02, margin: "0 0 16px" }}>
-                                Đói rồi?<br />Foodie lo hết.
-                            </Title>
-                            <Typography.Paragraph style={{ color: "#fff", fontSize: 18, maxWidth: 480, opacity: 0.95 }}>
-                                Burger, cơm tấm, phở, trà đào... đặt trong 1 phút, nóng hổi đến cửa nhà bạn trong 30 phút.
-                            </Typography.Paragraph>
-                            <Space wrap size={12}>
-                                <Button size="large" shape="round" onClick={() => setView("products")} style={{ color: "#BF2412", fontWeight: 600 }}>
-                                    Xem thực đơn
-                                </Button>
-                                <Button size="large" shape="round" ghost onClick={() => setView("register")}>
-                                    Tạo tài khoản
-                                </Button>
-                            </Space>
-                        </Col>
-                        <Col xs={0} md={11}>
-                            <div
-                                style={{
-                                    margin: "0 auto", width: 300, height: 300, borderRadius: "50%", display: "grid", placeItems: "center",
-                                    fontSize: 150, background: "rgba(255,255,255,.16)", border: "2px dashed rgba(255,255,255,.5)",
-                                }}
-                                aria-hidden="true"
-                            >
-                                🍔
-                            </div>
-                        </Col>
-                    </Row>
+            <BannerCarousel />
+
+            {/* Dải tìm kiếm */}
+            <div style={{ background: PRIMARY, padding: '18px 16px' }}>
+                <Input
+                    size="large"
+                    allowClear
+                    value={keyword}
+                    onChange={(e) => setKeyword(e.target.value)}
+                    onPressEnter={search}
+                    placeholder="Tìm món..."
+                    aria-label="Tìm món"
+                    suffix={<SearchOutlined onClick={search} style={{ color: PRIMARY, fontSize: 20, cursor: 'pointer' }} aria-label="Tìm" />}
+                    style={{ display: 'flex', maxWidth: 660, margin: '0 auto', borderRadius: 999, paddingInline: 20 }}
+                />
+            </div>
+
+            <Title level={2} style={{ ...display, textAlign: 'center', margin: '48px 16px 28px', fontSize: 'clamp(26px, 4vw, 40px)' }}>
+                Thực đơn ngon - Đặt món ngay
+            </Title>
+
+            {error ? (
+                <Container><Alert type="error" showIcon message="Không tải được thực đơn" description={error} /></Container>
+            ) : loading ? (
+                <Flex justify="center" style={{ padding: 60 }}><Spin size="large" /></Flex>
+            ) : sections.length === 0 ? (
+                <Empty description="Thực đơn đang được cập nhật." style={{ padding: 48 }} />
+            ) : (
+                <>
+                    <MenuTabs tabs={tabs} active={active} onChange={setActive} />
+                    <Container>
+                        {sections.map((s) => (
+                            <section key={s.key} id={s.key} aria-labelledby={`${s.key}-title`} style={{ paddingTop: 40 }}>
+                                <Title
+                                    id={`${s.key}-title`}
+                                    level={3}
+                                    style={{ ...display, textTransform: 'uppercase', margin: '0 0 20px', fontSize: 'clamp(22px, 3vw, 30px)' }}
+                                >
+                                    {s.label}
+                                </Title>
+                                <ProductGrid products={s.items} onAdd={onAdd} onOpen={onOpen} />
+                            </section>
+                        ))}
+                    </Container>
+                </>
+            )}
+
+            {/* Lời mời đăng ký: chỉ dành cho khách chưa có tài khoản */}
+            {!user && (
+                <Container style={{ marginTop: 56 }}>
+                    <Flex
+                        justify="space-between"
+                        align="center"
+                        wrap
+                        gap={20}
+                        style={{ background: PRIMARY_DARK, color: '#fff', borderRadius: 8, padding: '28px 32px' }}
+                    >
+                        <div>
+                            <Title level={3} style={{ ...display, color: '#fff', margin: 0 }}>Thành viên mới giảm 20%</Title>
+                            <Text style={{ color: '#fff', opacity: 0.85 }}>Tạo tài khoản để nhận ưu đãi cho đơn đầu tiên và theo dõi đơn hàng.</Text>
+                        </div>
+                        <Button size="large" onClick={() => setView('register')} style={{ fontWeight: 600, color: PRIMARY_DARK }}>
+                            Đăng ký ngay
+                        </Button>
+                    </Flex>
                 </Container>
-            </section>
-
-            <Container>
-                <Row gutter={[16, 16]} style={{ marginTop: -36 }}>
-                    {perks.map((p) => (
-                        <Col key={p.title} xs={24} md={8}>
-                            <Card styles={{ body: { padding: 18 } }} style={{ boxShadow: "0 10px 24px rgba(43,27,20,.08)" }}>
-                                <Flex gap={14} align="center">
-                                    <Avatar size={46} shape="square" icon={p.icon} style={{ background: "#FFF1DC", color: PRIMARY, borderRadius: 14, fontSize: 22 }} />
-                                    <div>
-                                        <Text strong style={{ display: "block" }}>{p.title}</Text>
-                                        <Text type="secondary" style={{ fontSize: 13 }}>{p.text}</Text>
-                                    </div>
-                                </Flex>
-                            </Card>
-                        </Col>
-                    ))}
-                </Row>
-
-                <section style={{ paddingTop: 56 }}>
-                    <Flex justify="space-between" align="end" wrap gap={8} style={{ marginBottom: 24 }}>
-                        <div>
-                            <Title level={2} style={{ ...display, margin: 0 }}>Món được gọi nhiều nhất</Title>
-                            <Text type="secondary">Khách quen của Foodie hay chọn những món này.</Text>
-                        </div>
-                        <Button type="link" onClick={() => setView("products")}>Xem toàn bộ thực đơn</Button>
-                    </Flex>
-
-                    {error ? (
-                        <Alert type="error" showIcon message="Không tải được danh sách món" description={error} />
-                    ) : (
-                        <Spin spinning={loading}>
-                            <div style={{ minHeight: 200 }}>
-                                <ProductGrid products={featured} onAdd={onAdd} onOpen={onOpen} />
-                            </div>
-                        </Spin>
-                    )}
-                </section>
-
-                <Card
-                    style={{ marginTop: 64, background: "#2B1B14", border: "none", borderRadius: 28 }}
-                    styles={{ body: { padding: 36 } }}
-                >
-                    <Flex justify="space-between" align="center" wrap gap={20}>
-                        <div>
-                            <Title level={3} style={{ ...display, color: "#fff", margin: 0 }}>Đơn đầu tiên giảm 20%</Title>
-                            <Text style={{ color: "#fff", opacity: 0.8 }}>Đăng ký tài khoản để nhận mã ưu đãi cho lần đặt đầu tiên.</Text>
-                        </div>
-                        <Button type="primary" size="large" shape="round" onClick={() => setView("register")}>Đăng ký ngay</Button>
-                    </Flex>
-                </Card>
-            </Container>
+            )}
         </>
     );
-}
+};
 
 export default HomePage;

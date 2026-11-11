@@ -8,8 +8,8 @@ import { display } from '../utils/helpers';
 
 const { Title, Text } = Typography;
 
-const ProductsPage = ({ onAdd, onOpen }) => {
-    const [keyword, setKeyword] = useState("");
+const ProductsPage = ({ onAdd, onOpen, initialKeyword = "" }) => {
+    const [keyword, setKeyword] = useState(initialKeyword);
     const [categoryId, setCategoryId] = useState(null);   // null = tất cả
     const [categories, setCategories] = useState([]);
     const [products, setProducts] = useState([]);
@@ -82,7 +82,7 @@ const ProductsPage = ({ onAdd, onOpen }) => {
                             key={c.id ?? "all"}
                             checked={categoryId === c.id}
                             onChange={() => setCategoryId(c.id)}
-                            style={{ padding: "6px 16px", fontSize: 14, borderRadius: 999, border: "1px solid #F0E3D8" }}
+                            style={{ padding: "6px 16px", fontSize: 14, borderRadius: 999, border: "1px solid #EEEEEE" }}
                         >
                             {c.name}
                         </Tag.CheckableTag>

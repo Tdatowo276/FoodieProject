@@ -1,31 +1,44 @@
+import { useState } from "react";
+import { ShopOutlined } from "@ant-design/icons";
 import { resolveImageUrl } from "../../utils/helpers";
-// Hiện ảnh thật nếu API có imageUrl, nếu không thì dùng emoji
-const ProductImage = ({ product, height = 170, radius = 0, fontSize }) => {
-    if (resolveImageUrl(product.imageUrl)) {
+
+/**
+ * Ảnh món. Món chưa có ảnh (admin chưa upload) => khung xám nhạt + biểu tượng đơn giản.
+ * fit="contain" hợp với ảnh món đã tách nền (nền trắng); "cover" lấp đầy khung.
+ */
+const ProductImage = ({ product, height = 170, radius = 0, fit = "contain" }) => {
+    const [broken, setBroken] = useState(false);
+    const src = resolveImageUrl(product.imageUrl);
+
+    if (src && !broken) {
         return (
             <img
-                src={resolveImageUrl(product.imageUrl)}
+                src={src}
                 alt={product.name}
-                style={{ width: "100%", height, objectFit: "cover", display: "block", borderRadius: radius }}
+                loading="lazy"
+                onError={() => setBroken(true)}
+                style={{ width: "100%", height, objectFit: fit, display: "block", borderRadius: radius, background: "#fff" }}
             />
         );
     }
+
     return (
         <div
             style={{
                 height,
-                background: product.bg || "#FFF1DC",
+                width: "100%",
+                borderRadius: radius,
+                background: "#F5F5F5",
                 display: "grid",
                 placeItems: "center",
-                fontSize: fontSize || height * 0.5,
-                borderRadius: radius,
-                width: "100%",
+                color: "#BDBDBD",
+                fontSize: Math.min(48, height * 0.28),
             }}
             aria-hidden="true"
         >
-            {product.emoji || "🍽️"}
+            <ShopOutlined />
         </div>
     );
-}
+};
 
 export default ProductImage;

@@ -108,7 +108,7 @@ const CartPage = ({ cart, setView, onQty, onRemove, onCheckout }) => {
                         <Flex
                             justify="space-between"
                             align="baseline"
-                            style={{ margin: "16px 0", paddingTop: 14, borderTop: "2px dashed #F0E3D8" }}
+                            style={{ margin: "16px 0", paddingTop: 14, borderTop: "2px dashed #EEEEEE" }}
                         >
                             <Text strong>Tổng cộng</Text>
                             <Text style={{ ...display, fontSize: 30, color: PRIMARY }}>{formatVND(total)}</Text>

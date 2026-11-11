@@ -8,8 +8,11 @@ const SESSION_EXPIRED_EVENT = "foodie:session-expired";
 const SHIPPING_FEE = 15000;
 const FREE_SHIP_FROM = 200000;
 
-const PRIMARY = "#E8321E";
-const display = { fontFamily: "'Baloo 2', 'Be Vietnam Pro', sans-serif", fontWeight: 800 };
+// Đỏ tươi chủ đạo + nền trắng
+const PRIMARY = "#E3121B";
+const PRIMARY_DARK = "#B80D14";
+// Tiêu đề: chữ đậm, gọn (không dùng font tròn kiểu "hoạt hình")
+const display = { fontFamily: "'Be Vietnam Pro', system-ui, sans-serif", fontWeight: 800, letterSpacing: "-0.01em" };
 const formatVND = (n) => Number(n).toLocaleString("vi-VN") + "đ";
 
 const removeAccents = (s) =>
@@ -75,6 +78,7 @@ export {
     SHIPPING_FEE,
     FREE_SHIP_FROM,
     PRIMARY,
+    PRIMARY_DARK,
     display,
     formatVND,
     removeAccents,

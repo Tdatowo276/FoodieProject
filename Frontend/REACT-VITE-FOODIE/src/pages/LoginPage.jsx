@@ -2,28 +2,25 @@ import React, { useState } from 'react';
 import { Card, Row, Col, Typography, Alert, Form, Input, Button } from 'antd';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
 import { authService } from '../services/auth.service';
-import { display } from '../utils/helpers';
+import { display, PRIMARY } from '../utils/helpers';
 
 const { Title, Text } = Typography;
 const USE_MOCK = import.meta.env.VITE_USE_MOCK !== "false";
 
-const AuthShell = ({ title, subtitle, side, emoji, children }) => {
+const AuthShell = ({ title, subtitle, side, children }) => {
     return (
         <div style={{ display: "grid", placeItems: "center", padding: "40px 20px", minHeight: "calc(100vh - 68px - 300px)" }}>
-            <Card styles={{ body: { padding: 0 } }} style={{ width: "100%", maxWidth: 940, borderRadius: 28, overflow: "hidden", boxShadow: "0 24px 60px rgba(232,50,30,.12)" }}>
+            <Card styles={{ body: { padding: 0 } }} style={{ width: "100%", maxWidth: 940, borderRadius: 8, overflow: "hidden", boxShadow: "0 12px 32px rgba(0,0,0,.08)" }}>
                 <Row>
                     <Col xs={0} md={12}>
                         <div
                             style={{
-                                height: "100%", padding: "44px 36px", color: "#fff", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 24,
-                                background: "linear-gradient(150deg, #E8321E, #FF8A00)",
+                                height: "100%", padding: "44px 36px", color: "#fff", display: "flex", flexDirection: "column", justifyContent: "center",
+                                background: PRIMARY,
                             }}
                         >
-                            <div>
-                                <Title level={2} style={{ ...display, color: "#fff", margin: 0, fontSize: 36, lineHeight: 1.05 }}>{side.title}</Title>
-                                <Typography.Paragraph style={{ color: "#fff", opacity: 0.92, marginTop: 10 }}>{side.text}</Typography.Paragraph>
-                            </div>
-                            <div style={{ fontSize: 84, lineHeight: 1 }} aria-hidden="true">{emoji}</div>
+                            <Title level={2} style={{ ...display, color: "#fff", margin: 0, fontSize: 34, lineHeight: 1.15, textTransform: "uppercase" }}>{side.title}</Title>
+                            <Typography.Paragraph style={{ color: "#fff", opacity: 0.92, marginTop: 12, fontSize: 16 }}>{side.text}</Typography.Paragraph>
                         </div>
                     </Col>
                     <Col xs={24} md={12}>
@@ -60,7 +57,6 @@ const LoginPage = ({ setView, onAuthSuccess, notice }) => {
         <AuthShell
             title="Đăng nhập"
             subtitle="Nhập email và mật khẩu của bạn."
-            emoji="🍜"
             side={{ title: "Chào mừng bạn quay lại", text: "Đăng nhập để theo dõi đơn hàng và đặt món nhanh hơn." }}
         >
             {notice && <Alert type="info" showIcon message={notice} style={{ marginBottom: 16 }} />}

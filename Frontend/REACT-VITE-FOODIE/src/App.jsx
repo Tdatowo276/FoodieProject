@@ -26,6 +26,7 @@ const FoodieApp = () => {
   const [checkout, setCheckout] = useState(null);
   const [order, setOrder] = useState(null);
   const [openOrderCode, setOpenOrderCode] = useState(null);   // mở sẵn chi tiết đơn khi vào "Đơn của tôi"
+  const [searchKeyword, setSearchKeyword] = useState('');     // từ khóa nhập ở trang chủ => trang Thực đơn
   const {
     view,
     user,
@@ -73,7 +74,7 @@ const FoodieApp = () => {
   let page;
   switch (view) {
     case 'products':
-      page = <ProductsPage onAdd={addToCart} onOpen={setDetail} />;
+      page = <ProductsPage key={searchKeyword} initialKeyword={searchKeyword} onAdd={addToCart} onOpen={setDetail} />;
       break;
     case 'product-detail':
       page = (
@@ -117,14 +118,22 @@ const FoodieApp = () => {
       page = <NotFoundPage onNavigate={navigate} />;
       break;
     default:
-      page = <HomePage setView={navigate} onAdd={addToCart} onOpen={setDetail} />;
+      page = (
+        <HomePage
+          user={user}
+          setView={navigate}
+          onAdd={addToCart}
+          onOpen={setDetail}
+          onSearch={(kw) => { setSearchKeyword(kw); navigate('products'); }}
+        />
+      );
   }
 
   return (
-    <Layout style={{ minHeight: '100vh', background: '#FFFDFA' }}>
+    <Layout style={{ minHeight: '100vh', background: '#fff' }}>
       <AppHeader
         view={view}
-        setView={(next) => { setOpenOrderCode(null); navigate(next); }}
+        setView={(next) => { setOpenOrderCode(null); setSearchKeyword(''); navigate(next); }}
         cartCount={cartCount}
         user={user}
         onLogout={handleLogout}
@@ -196,15 +205,20 @@ export default function App() {
         token: {
           colorPrimary: PRIMARY,
           colorInfo: PRIMARY,
-          borderRadius: 12,
+          borderRadius: 6,
           fontFamily: "'Be Vietnam Pro', system-ui, sans-serif",
-          colorTextBase: '#2B1B14',
+          colorTextBase: '#1F1F1F',
         },
       }}
     >
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap');
-        body { margin: 0; background: #FFFDFA; }
+        @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap');
+        body { margin: 0; background: #fff; }
+        /* Mũi tên carousel banner: nút tròn trắng dễ thấy trên mọi ảnh */
+        .ant-carousel .slick-prev, .ant-carousel .slick-next { width: 36px; height: 36px; background: rgba(255,255,255,.85); border-radius: 50%; z-index: 2; }
+        .ant-carousel .slick-prev { inset-inline-start: 16px; }
+        .ant-carousel .slick-next { inset-inline-end: 16px; }
+        .ant-carousel .slick-prev::after, .ant-carousel .slick-next::after { border-color: #E3121B; inset-inline-start: 13px; top: 13px; }
       `}</style>
       <AntApp>
         <FoodieApp />

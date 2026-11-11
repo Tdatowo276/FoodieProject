@@ -27,7 +27,6 @@ const RegisterPage = ({ setView, onAuthSuccess }) => {
         <AuthShell
             title="Đăng ký"
             subtitle="Chỉ mất chưa tới một phút."
-            emoji="🍰"
             side={{ title: "Tạo tài khoản Foodie", text: "Nhận ưu đãi 20% cho đơn đầu tiên và lưu lại món yêu thích." }}
         >
             {error && <Alert type="error" showIcon message={error} style={{ marginBottom: 16 }} />}

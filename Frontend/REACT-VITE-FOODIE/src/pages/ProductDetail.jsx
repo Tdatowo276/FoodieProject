@@ -110,7 +110,7 @@ export default function ProductDetail({ productId, onNavigate, onAddToCart }) {
         const rating = product.rating ?? 0;
 
         return (
-            <Card styles={{ body: { padding: 28 } }} style={{ borderRadius: 24 }}>
+            <Card styles={{ body: { padding: 28 } }} style={{ borderRadius: 8 }}>
                 <Row gutter={[40, 24]}>
                     <Col xs={24} md={11}>
                         <ProductImage product={product} height={380} radius={20} fontSize={180} />

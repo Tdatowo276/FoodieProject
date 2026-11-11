@@ -7,14 +7,14 @@ import { display } from '../../utils/helpers';
 const { Title, Text } = Typography;
 
 const AppFooter = ({ setView }) => {
-    const linkStyle = { color: "#E9DDD5", padding: 0, height: "auto" };
+    const linkStyle = { color: "#D9D9D9", padding: 0, height: "auto" };
     return (
-        <Layout.Footer style={{ background: "#2B1B14", color: "#E9DDD5", padding: 0, marginTop: 40 }}>
+        <Layout.Footer style={{ background: "#1F1F1F", color: "#D9D9D9", padding: 0, marginTop: 40 }}>
             <Container style={{ padding: "48px 20px 28px" }}>
                 <Row gutter={[32, 28]}>
                     <Col xs={24} md={9}>
-                        <div style={{ ...display, fontSize: 28, color: "#fff", marginBottom: 8 }}>🍴 Foodie</div>
-                        <Text style={{ color: "#E9DDD5", opacity: 0.8 }}>
+                        <div style={{ ...display, fontSize: 28, color: "#fff", marginBottom: 8 }}>FOODIE</div>
+                        <Text style={{ color: "#D9D9D9", opacity: 0.8 }}>
                             Đồ ăn nóng hổi, giao tận nhà trong 30 phút. Nấu mới mỗi ngày từ nguyên liệu tươi.
                         </Text>
                     </Col>
@@ -36,9 +36,9 @@ const AppFooter = ({ setView }) => {
                     <Col xs={24} md={5}>
                         <Title level={5} style={{ color: "#fff" }}>Liên hệ</Title>
                         <Flex vertical gap={8}>
-                            <Text style={{ color: "#E9DDD5", opacity: 0.8 }}><EnvironmentOutlined /> 54 Ngo 10 Lang Ha, Ha Noi</Text>
-                            <Text style={{ color: "#E9DDD5", opacity: 0.8 }}><PhoneOutlined /> +84 974 679 274</Text>
-                            <Text style={{ color: "#E9DDD5", opacity: 0.8 }}><MailOutlined /> WupyTdat@gmail.com</Text>
+                            <Text style={{ color: "#D9D9D9", opacity: 0.8 }}><EnvironmentOutlined /> 54 Ngo 10 Lang Ha, Ha Noi</Text>
+                            <Text style={{ color: "#D9D9D9", opacity: 0.8 }}><PhoneOutlined /> +84 974 679 274</Text>
+                            <Text style={{ color: "#D9D9D9", opacity: 0.8 }}><MailOutlined /> WupyTdat@gmail.com</Text>
                         </Flex>
                     </Col>
                 </Row>
