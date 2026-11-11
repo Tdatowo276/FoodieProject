@@ -10,11 +10,21 @@ namespace FoodieAPI.Data
         {
             if (!await db.Users.AnyAsync(u => u.Role == Roles.Admin))
             {
+                // Mật khẩu admin không được viết cứng: lấy từ User Secrets / biến môi trường Seed__AdminPassword.
+                var adminEmail = config["Seed:AdminEmail"];
+                var adminPassword = config["Seed:AdminPassword"];
+                if (string.IsNullOrWhiteSpace(adminEmail) || string.IsNullOrWhiteSpace(adminPassword))
+                    throw new InvalidOperationException(
+                        "Chưa có tài khoản admin và thiếu cấu hình 'Seed:AdminEmail' / 'Seed:AdminPassword'. " +
+                        "Hãy đặt bằng: dotnet user-secrets set \"Seed:AdminPassword\" \"<mật khẩu>\"");
+                if (adminPassword.Length < 8)
+                    throw new InvalidOperationException("Seed:AdminPassword phải dài tối thiểu 8 ký tự.");
+
                 db.Users.Add(new User
                 {
                     Username = "Quản trị viên",
-                    Email = (config["Seed:AdminEmail"] ?? "admin@foodie.vn").Trim().ToLowerInvariant(),
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(config["Seed:AdminPassword"] ?? "Admin@12345"),
+                    Email = adminEmail.Trim().ToLowerInvariant(),
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword(adminPassword),
                     Role = Roles.Admin
                 });
             }

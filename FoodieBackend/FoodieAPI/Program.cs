@@ -1,5 +1,4 @@
 using System.Text;
-using System.Security.Cryptography;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
@@ -17,54 +16,30 @@ Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 
-// 1. Terminal chọn CSDL
-Console.WriteLine("==================================================");
-Console.WriteLine("          CHỌN CƠ SỞ DỮ LIỆU CHO FOODIE API         ");
-Console.WriteLine("==================================================");
-Console.WriteLine("1. Dùng SQLite cục bộ (Tự động sinh file 'foodie.db')");
-Console.WriteLine("2. Dùng SQL Server trên máy (Nhập tên Server và Database)");
-Console.Write("👉 Lựa chọn của bạn (1 hoặc 2, mặc định là 1): ");
-
-string? choice = Console.ReadLine()?.Trim();
-string connectionString;
-bool isSqlite = true;
-
-if (choice == "2")
-{
-    isSqlite = false;
-    // Console.WriteLine("\n--- CẤU HÌNH SQL SERVER ---");
-    // Console.Write("Nhập tên Server (ví dụ: localhost, .\\SQLEXPRESS): ");
-    // string server = Console.ReadLine()?.Trim() ?? ".\\SQLEXPRESS";
-    // server = server.Replace("\\\\", "\\");
-    string server = ".\\SQLEXPRESS";
-
-    // Console.Write("Nhập tên Database (ví dụ: FoodieDB): ");
-    // string dbName = Console.ReadLine()?.Trim() ?? "FoodieDB";
-    string dbName = "FoodieDB";
-
-    connectionString = $"Server={server};Database={dbName};Trusted_Connection=True;TrustServerCertificate=True;";
-    Console.WriteLine($"\n[INFO] Đã cấu hình kết nối tới SQL Server: {dbName} trên {server}");
-}
-else
-{
-    isSqlite = true;
-    connectionString = "Data Source=foodie.db";
-    Console.WriteLine("\n[INFO] Đang sử dụng cơ sở dữ liệu SQLite cục bộ ('foodie.db')...");
-}
-Console.WriteLine("==================================================\n");
+// 1. Cơ sở dữ liệu
+// Không viết cứng chuỗi kết nối trong mã nguồn. Giá trị được lấy từ:
+//   - Development: User Secrets   (dotnet user-secrets set "ConnectionStrings:Default" "...")
+//   - Production:  biến môi trường ConnectionStrings__Default
+var dbProvider = config["Database:Provider"] ?? "SqlServer";
+var connectionString = RequireSetting(config, "ConnectionStrings:Default");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    if (isSqlite) options.UseSqlite(connectionString);
-    else options.UseSqlServer(connectionString);
+    switch (dbProvider.ToLowerInvariant())
+    {
+        case "sqlserver": options.UseSqlServer(connectionString); break;
+        case "sqlite": options.UseSqlite(connectionString); break;
+        default:
+            throw new InvalidOperationException(
+                $"Database:Provider '{dbProvider}' không hợp lệ. Giá trị hợp lệ: SqlServer, Sqlite.");
+    }
 });
 
 // 2. JWT
-var jwtKey = config["Jwt:Key"];
-if (string.IsNullOrWhiteSpace(jwtKey))
-{
-    jwtKey = Convert.ToBase64String(RandomNumberGenerator.GetBytes(48));
-}
+// Khóa ký token bắt buộc phải được cấu hình (User Secrets / biến môi trường Jwt__Key), tối thiểu 32 byte.
+var jwtKey = RequireSetting(config, "Jwt:Key");
+if (Encoding.UTF8.GetByteCount(jwtKey) < 32)
+    throw new InvalidOperationException("Jwt:Key phải dài tối thiểu 32 byte.");
 
 var jwt = new JwtSettings(
     config["Jwt:Issuer"] ?? "Foodie.Api",
@@ -174,3 +149,17 @@ app.MapOrders();
 app.MapAdmin();
 
 app.Run();
+
+// Đọc một cấu hình bắt buộc. Thiếu thì dừng khởi động với hướng dẫn cụ thể,
+// thay vì chạy tiếp với giá trị mặc định không an toàn.
+static string RequireSetting(IConfiguration config, string key)
+{
+    var value = config[key];
+    if (!string.IsNullOrWhiteSpace(value)) return value;
+
+    throw new InvalidOperationException(
+        $"Thiếu cấu hình bắt buộc '{key}'.\n" +
+        $"  - Môi trường Development: dotnet user-secrets set \"{key}\" \"<giá trị>\"\n" +
+        $"  - Môi trường Production:  đặt biến môi trường {key.Replace(":", "__")}\n" +
+        "Xem hướng dẫn trong README.MD, mục 'Cấu hình bí mật'.");
+}

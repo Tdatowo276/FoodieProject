@@ -49,11 +49,39 @@ cd FoodieProject
 
 
 Bước 2: Thiết lập và chạy Backend (ASP.NET Core Web API)
-Yêu cầu hệ thống: Đã cài đặt .NET 9 SDK trở lên.
+Yêu cầu hệ thống: .NET 8 SDK trở lên và SQL Server (bản Express là đủ).
 
-Cấu hình Cơ sở dữ liệu:
+Database `FoodieDB` được Entity Framework Core tự tạo khi chạy ứng dụng. Không cần chạy script SQL thủ công.
 
-Database được Entity Framework Core tự tạo khi chạy ứng dụng (SQLite mặc định, hoặc SQL Server). Không cần chạy script SQL thủ công.
+#### 🔐 Cấu hình bí mật (bắt buộc, làm 1 lần sau khi clone)
+
+Theo yêu cầu bảo mật, chuỗi kết nối, khóa JWT và mật khẩu admin **không nằm trong mã nguồn hay `appsettings.json`**.
+Khi phát triển, các giá trị này lưu trong **User Secrets** (nằm ngoài thư mục dự án, không bị commit).
+Nếu thiếu, ứng dụng sẽ dừng ngay khi khởi động và báo thiếu khóa nào.
+
+**Windows (khuyên dùng):** mở PowerShell (hoặc terminal của VS Code) tại thư mục gốc dự án, chạy script, sau đó nhập mật khẩu admin khi được hỏi:
+
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass; .\FoodieBackend\scripts\setup-secrets.ps1
+```
+
+**macOS / Linux hoặc cấu hình thủ công:**
+
+```bash
+cd FoodieBackend/FoodieAPI
+dotnet user-secrets set "ConnectionStrings:Default" "Server=localhost;Database=FoodieDB;User Id=sa;Password=<mật khẩu SQL>;TrustServerCertificate=True;"
+dotnet user-secrets set "Jwt:Key" "$(openssl rand -base64 48)"
+dotnet user-secrets set "Seed:AdminPassword" "<mật khẩu admin, tối thiểu 8 ký tự>"
+```
+
+| Khóa | Bắt buộc | Mô tả |
+|---|---|---|
+| `ConnectionStrings:Default` | ✅ | Chuỗi kết nối SQL Server |
+| `Jwt:Key` | ✅ | Khóa ký token JWT, tối thiểu 32 byte |
+| `Seed:AdminPassword` | ✅ (lần chạy đầu) | Mật khẩu của tài khoản admin `admin@foodie.vn` được tạo tự động |
+| `Database:Provider` | ❌ | `SqlServer` (mặc định) hoặc `Sqlite` |
+
+Trên môi trường **Production**, đặt các giá trị trên bằng biến môi trường, thay `:` bằng `__`. Ví dụ: `ConnectionStrings__Default`, `Jwt__Key`.
 
 Chạy ứng dụng:
 
