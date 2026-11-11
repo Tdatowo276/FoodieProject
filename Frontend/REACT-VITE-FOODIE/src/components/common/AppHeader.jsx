@@ -1,7 +1,9 @@
 import React from 'react';
 import { Layout, Menu, Badge, Button, Dropdown, Space, Avatar, Typography, Grid } from 'antd';
-import { HomeOutlined, ShopOutlined, ShoppingCartOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons';
-import { PRIMARY, display } from '../../utils/helpers';
+import {
+    HomeOutlined, ShopOutlined, ShoppingCartOutlined, UserOutlined, LogoutOutlined, ProfileOutlined, SettingOutlined,
+} from '@ant-design/icons';
+import { PRIMARY, display, ADMIN_URL } from '../../utils/helpers';
 
 const { Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -71,6 +73,18 @@ const AppHeader = ({ view, setView, cartCount, user, onLogout }) => {
                         menu={{
                             items: [
                                 { key: "email", label: user.email, disabled: true },
+                                { type: "divider" },
+                                { key: "orders", icon: <ProfileOutlined />, label: "Đơn của tôi", onClick: () => setView("orders") },
+                                // Trang quản trị là ASP.NET Core MVC trên backend (đăng nhập riêng bằng cookie).
+                                // Đây chỉ là đường dẫn; quyền admin luôn được kiểm tra phía server.
+                                ...(user.role === "Admin"
+                                    ? [{
+                                        key: "admin",
+                                        icon: <SettingOutlined />,
+                                        label: <a href={ADMIN_URL} target="_blank" rel="noopener noreferrer">Trang quản trị</a>,
+                                    }]
+                                    : []),
+                                { type: "divider" },
                                 { key: "logout", icon: <LogoutOutlined />, label: "Đăng xuất", onClick: onLogout },
                             ],
                         }}

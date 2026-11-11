@@ -16,7 +16,7 @@ import ProductModal from './components/products/ProductModal';
 import CheckoutModal from './components/products/CheckoutModal';
 import ProductDetail from './pages/ProductDetail';
 import NotFoundPage from './pages/NotFoundPage';
-import AdminDashboard from './pages/AdminDashboard';
+import MyOrdersPage from './pages/MyOrdersPage';
 
 const FoodieApp = () => {
   const { message } = AntApp.useApp();
@@ -25,6 +25,7 @@ const FoodieApp = () => {
   const [detail, setDetail] = useState(null);
   const [checkout, setCheckout] = useState(null);
   const [order, setOrder] = useState(null);
+  const [openOrderCode, setOpenOrderCode] = useState(null);   // mở sẵn chi tiết đơn khi vào "Đơn của tôi"
   const {
     view,
     user,
@@ -94,8 +95,11 @@ const FoodieApp = () => {
         />
       );
       break;
-    case 'admin':
-      page = <AdminDashboard />;
+    case 'orders':
+      // Trang cần đăng nhập; phiên hết hạn thì useAuthView tự chuyển về trang đăng nhập
+      page = user
+        ? <MyOrdersPage key={openOrderCode ?? 'list'} onNavigate={navigate} openCode={openOrderCode} />
+        : <LoginPage setView={navigate} onAuthSuccess={handleAuthSuccess} notice="Hãy đăng nhập để xem đơn hàng của bạn." />;
       break;
     case 'login':
       page = (
@@ -118,7 +122,13 @@ const FoodieApp = () => {
 
   return (
     <Layout style={{ minHeight: '100vh', background: '#FFFDFA' }}>
-      <AppHeader view={view} setView={navigate} cartCount={cartCount} user={user} onLogout={handleLogout} />
+      <AppHeader
+        view={view}
+        setView={(next) => { setOpenOrderCode(null); navigate(next); }}
+        cartCount={cartCount}
+        user={user}
+        onLogout={handleLogout}
+      />
       <Layout.Content style={{ paddingBottom: 40 }}>{page}</Layout.Content>
       <AppFooter setView={navigate} />
 
@@ -148,9 +158,21 @@ const FoodieApp = () => {
               </>
             )
           }
-          extra={
+          extra={[
             <Button
+              key="track"
               type="primary"
+              size="large"
+              onClick={() => {
+                setOpenOrderCode(order.orderCode);
+                setOrder(null);
+                navigate('orders');
+              }}
+            >
+              Theo dõi đơn hàng
+            </Button>,
+            <Button
+              key="home"
               size="large"
               onClick={() => {
                 setOrder(null);
@@ -158,8 +180,8 @@ const FoodieApp = () => {
               }}
             >
               Về trang chủ
-            </Button>
-          }
+            </Button>,
+          ]}
         />
       </Modal>
     </Layout>

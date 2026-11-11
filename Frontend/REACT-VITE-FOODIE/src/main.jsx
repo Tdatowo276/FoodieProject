@@ -1,44 +1,12 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
-import {
-  createBrowserRouter,
-  RouterProvider,
-} from "react-router-dom";
-import LoginPage from './pages/LoginPage.jsx';
-import HomePage from './pages/HomePage.jsx';
-import ProductsPage from './pages/ProductsPage.jsx'
-import RegisterPage from './pages/RegisterPage.jsx'
-import NotFoundPage from './pages/NotFoundPage.jsx'
 
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <App />,
-    errorElement: <NotFoundPage />,
-    children: [
-      {
-        index: true,
-        element: <HomePage />
-      },
-      {
-        path: "/products",
-        element: <ProductsPage />
-      }
-    ]
-  },
-  {
-    path: "/login",
-    element: <LoginPage />
-  },
-  {
-    path: "/register",
-    element: <RegisterPage />,
-  }
-]);
+// App tự điều hướng giữa các trang bằng state (xem hooks/useAuthView.js).
+// Trước đây có khai báo thêm React Router cho /login, /register nhưng các trang đó được render
+// thiếu props nên bị lỗi khi truy cập trực tiếp; nay mọi đường dẫn đều mở App.
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <App />
   </React.StrictMode>
 )
-

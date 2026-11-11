@@ -3,17 +3,28 @@ import { Typography, Flex, Input, Tag, Alert, Spin, Empty, Button } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import Container from '../components/Container';
 import ProductGrid from '../components/products/ProductGrid';
-import { productService } from '../services/product.service';
-import { CATEGORIES, display } from '../utils/helpers';
+import { productService, categoryService } from '../services/product.service';
+import { display } from '../utils/helpers';
 
 const { Title, Text } = Typography;
 
 const ProductsPage = ({ onAdd, onOpen }) => {
     const [keyword, setKeyword] = useState("");
-    const [category, setCategory] = useState("Tất cả");
+    const [categoryId, setCategoryId] = useState(null);   // null = tất cả
+    const [categories, setCategories] = useState([]);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+
+    // Danh mục do admin quản lý, lấy từ API (chỉ danh mục đang hiển thị)
+    useEffect(() => {
+        let ignore = false;
+        categoryService
+            .getAll()
+            .then((data) => { if (!ignore) setCategories(data); })
+            .catch(() => { /* lỗi đã hiện ở phần danh sách món; vẫn cho xem "Tất cả" */ });
+        return () => { ignore = true; };
+    }, []);
 
     // Gọi API mỗi khi đổi từ khóa / danh mục (debounce 300ms cho ô tìm kiếm)
     useEffect(() => {
@@ -23,7 +34,7 @@ const ProductsPage = ({ onAdd, onOpen }) => {
             try {
                 const data = await productService.getAll({
                     keyword: keyword.trim() || undefined,
-                    category: category === "Tất cả" ? undefined : category,
+                    categoryId: categoryId ?? undefined,
                 });
                 if (!ignore) {
                     setProducts(data);
@@ -39,12 +50,14 @@ const ProductsPage = ({ onAdd, onOpen }) => {
             ignore = true;
             clearTimeout(timer);
         };
-    }, [keyword, category]);
+    }, [keyword, categoryId]);
 
     const reset = () => {
         setKeyword("");
-        setCategory("Tất cả");
+        setCategoryId(null);
     };
+
+    const chips = [{ id: null, name: "Tất cả" }, ...categories];
 
     return (
         <Container style={{ paddingBottom: 24 }}>
@@ -64,14 +77,14 @@ const ProductsPage = ({ onAdd, onOpen }) => {
                     style={{ maxWidth: 520, borderRadius: 999 }}
                 />
                 <Flex wrap gap={8} role="group" aria-label="Lọc theo danh mục">
-                    {CATEGORIES.map((c) => (
+                    {chips.map((c) => (
                         <Tag.CheckableTag
-                            key={c}
-                            checked={category === c}
-                            onChange={() => setCategory(c)}
+                            key={c.id ?? "all"}
+                            checked={categoryId === c.id}
+                            onChange={() => setCategoryId(c.id)}
                             style={{ padding: "6px 16px", fontSize: 14, borderRadius: 999, border: "1px solid #F0E3D8" }}
                         >
-                            {c}
+                            {c.name}
                         </Tag.CheckableTag>
                     ))}
                 </Flex>
