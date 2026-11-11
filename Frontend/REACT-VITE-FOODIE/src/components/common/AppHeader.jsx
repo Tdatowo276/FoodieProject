@@ -3,7 +3,7 @@ import { Layout, Menu, Badge, Button, Dropdown, Space, Avatar, Typography, Grid 
 import {
     HomeOutlined, ShopOutlined, ShoppingCartOutlined, UserOutlined, LogoutOutlined, ProfileOutlined, SettingOutlined,
 } from '@ant-design/icons';
-import { PRIMARY, display, ADMIN_URL } from '../../utils/helpers';
+import { PRIMARY, display, ADMIN_URL, resolveImageUrl } from '../../utils/helpers';
 
 const { Text } = Typography;
 const { useBreakpoint } = Grid;
@@ -84,6 +84,7 @@ const AppHeader = ({ view, setView, cartCount, user, onLogout }) => {
                             items: [
                                 { key: "email", label: user.email, disabled: true },
                                 { type: "divider" },
+                                { key: "profile", icon: <UserOutlined />, label: "Tài khoản của tôi", onClick: () => setView("profile") },
                                 { key: "orders", icon: <ProfileOutlined />, label: "Đơn của tôi", onClick: () => setView("orders") },
                                 // Trang quản trị là ASP.NET Core MVC trên backend (đăng nhập riêng bằng cookie).
                                 // Đây chỉ là đường dẫn; quyền admin luôn được kiểm tra phía server.
@@ -101,7 +102,9 @@ const AppHeader = ({ view, setView, cartCount, user, onLogout }) => {
                         placement="bottomRight"
                     >
                         <Space style={{ cursor: "pointer" }}>
-                            <Avatar style={{ background: PRIMARY }}>{user.name.trim().charAt(0).toUpperCase()}</Avatar>
+                            <Avatar src={resolveImageUrl(user.avatarUrl)} style={{ background: user.avatarUrl ? "#fff" : PRIMARY }}>
+                                {user.name.trim().charAt(0).toUpperCase()}
+                            </Avatar>
                             {!isMobile && <Text strong>{user.name}</Text>}
                         </Space>
                     </Dropdown>

@@ -52,6 +52,16 @@ export const useAuthView = (cartLength, message) => {
     else navigate('home');
   };
 
+  // Cập nhật thông tin hiển thị (tên, ảnh đại diện) sau khi sửa hồ sơ
+  const updateUser = useCallback((changes) => {
+    setUser((prev) => {
+      if (!prev) return prev;
+      const next = { ...prev, ...changes };
+      storage.set(USER_KEY, next);
+      return next;
+    });
+  }, []);
+
   const handleLogout = () => {
     storage.remove(TOKEN_KEY);
     storage.remove(USER_KEY);
@@ -68,5 +78,6 @@ export const useAuthView = (cartLength, message) => {
     navigate,
     handleAuthSuccess,
     handleLogout,
+    updateUser,
   };
 };

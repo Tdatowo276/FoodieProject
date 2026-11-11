@@ -25,8 +25,21 @@
                     var isAdmin = u.Role == Roles.Admin;
                     <tr>
                         <td class="text-break">
-                            <div class="fw-medium">@u.Name</div>
-                            <div class="small text-secondary">@u.Email</div>
+                            <div class="d-flex align-items-center gap-2">
+                                @if (u.AvatarUrl is not null)
+                                {
+                                    <img src="@u.AvatarUrl" alt="" width="36" height="36" class="rounded-circle object-fit-cover flex-shrink-0" loading="lazy" />
+                                }
+                                else
+                                {
+                                    <span class="rounded-circle bg-secondary-subtle text-secondary d-inline-flex align-items-center justify-content-center flex-shrink-0"
+                                          style="width:36px;height:36px" aria-hidden="true">@(u.Name.Length > 0 ? u.Name[..1].ToUpperInvariant() : "?")</span>
+                                }
+                                <div class="min-w-0">
+                                    <div class="fw-medium">@u.Name</div>
+                                    <div class="small text-secondary">@u.Email</div>
+                                </div>
+                            </div>
                         </td>
                         <td class="d-none d-md-table-cell">@(isAdmin ? "Quản trị viên" : "Khách hàng")</td>
                         <td class="d-none d-lg-table-cell text-nowrap">@AdminFormat.VnTime(u.CreatedAt)</td>

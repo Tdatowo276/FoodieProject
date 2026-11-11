@@ -36,7 +36,7 @@ namespace FoodieAPI.Services
             var items = await q
                 .OrderByDescending(u => u.CreatedAt).ThenByDescending(u => u.Id)
                 .Skip(skip).Take(size)
-                .Select(u => new UserDto(u.Id, u.Username, u.Email, u.Role, u.IsLocked, u.CreatedAt, u.Orders.Count))
+                .Select(u => new UserDto(u.Id, u.Username, u.Email, u.Role, u.IsLocked, u.CreatedAt, u.Orders.Count, u.AvatarUrl))
                 .ToListAsync();
 
             return new Paged<UserDto>(items, total, page, size);
@@ -60,7 +60,7 @@ namespace FoodieAPI.Services
             }
 
             var orderCount = await db.Orders.CountAsync(o => o.UserId == id);
-            return new UserDto(user.Id, user.Username, user.Email, user.Role, user.IsLocked, user.CreatedAt, orderCount);
+            return new UserDto(user.Id, user.Username, user.Email, user.Role, user.IsLocked, user.CreatedAt, orderCount, user.AvatarUrl);
         }
     }
 }

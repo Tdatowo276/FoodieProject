@@ -15,7 +15,8 @@ namespace FoodieAPI.DTOs
         string Role,
         bool IsLocked,
         DateTime CreatedAt,
-        int OrderCount
+        int OrderCount,
+        string? AvatarUrl = null
     );
 
     /// <summary>Tiêu chí lọc danh sách người dùng (admin).</summary>

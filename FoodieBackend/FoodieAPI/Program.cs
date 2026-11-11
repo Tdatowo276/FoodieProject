@@ -100,6 +100,7 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IStatsService, StatsService>();
 
 // Tài liệu REST API: /swagger (xem Common/SwaggerSetup.cs)
@@ -191,6 +192,7 @@ app.UseSession();
 app.MapAuth();
 app.MapProducts();
 app.MapOrders();
+app.MapProfile();
 app.MapAdmin();
 
 // MVC: khu Admin ( /Admin/{controller}/{action}/{id?} ) và trang lỗi chung

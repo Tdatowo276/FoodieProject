@@ -22,6 +22,20 @@ namespace FoodieAPI.Models
         // Admin có thể khóa tài khoản khách hàng; tài khoản bị khóa không đăng nhập được
         public bool IsLocked { get; set; }
 
+        // Ảnh đại diện (đường dẫn /uploads/{guid}.png do ImageStorage sinh ra)
+        [StringLength(255)]
+        public string? AvatarUrl { get; set; }
+
+        // Địa chỉ giao hàng mặc định (chọn sẵn khi thanh toán). Cả 3 cùng có hoặc cùng trống.
+        [StringLength(100)]
+        public string? DefaultRecipientName { get; set; }
+
+        [StringLength(15)]
+        public string? DefaultPhone { get; set; }
+
+        [StringLength(250)]
+        public string? DefaultAddress { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public List<Order> Orders { get; set; } = [];

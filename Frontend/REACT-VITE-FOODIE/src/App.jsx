@@ -17,6 +17,7 @@ import CheckoutModal from './components/products/CheckoutModal';
 import ProductDetail from './pages/ProductDetail';
 import NotFoundPage from './pages/NotFoundPage';
 import MyOrdersPage from './pages/MyOrdersPage';
+import ProfilePage from './pages/ProfilePage';
 
 const FoodieApp = () => {
   const { message } = AntApp.useApp();
@@ -35,6 +36,7 @@ const FoodieApp = () => {
     navigate,
     handleAuthSuccess,
     handleLogout,
+    updateUser,
   } = useAuthView(cart.length, message);
 
   useEffect(() => storage.set(CART_KEY, cart), [cart]);
@@ -95,6 +97,11 @@ const FoodieApp = () => {
           onCheckout={startCheckout}
         />
       );
+      break;
+    case 'profile':
+      page = user
+        ? <ProfilePage onUserChanged={updateUser} />
+        : <LoginPage setView={navigate} onAuthSuccess={handleAuthSuccess} notice="Hãy đăng nhập để xem tài khoản của bạn." />;
       break;
     case 'orders':
       // Trang cần đăng nhập; phiên hết hạn thì useAuthView tự chuyển về trang đăng nhập

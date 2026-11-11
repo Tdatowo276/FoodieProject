@@ -112,7 +112,7 @@ namespace FoodieAPI.Services
         public async Task<AuthUser> GetProfileAsync(int userId) =>
             await db.Users.AsNoTracking()
                 .Where(u => u.Id == userId)
-                .Select(u => new AuthUser(u.Id, u.Username, u.Email, u.Role))
+                .Select(u => new AuthUser(u.Id, u.Username, u.Email, u.Role, u.AvatarUrl))
                 .FirstOrDefaultAsync()
             ?? throw new ApiException(401, "Tài khoản không còn tồn tại. Vui lòng đăng nhập lại.");
 
@@ -156,7 +156,7 @@ namespace FoodieAPI.Services
             };
 
             var token = new JsonWebTokenHandler().CreateToken(descriptor);
-            return new AuthResult(token, expiresAt, new AuthUser(user.Id, user.Username, user.Email, user.Role));
+            return new AuthResult(token, expiresAt, new AuthUser(user.Id, user.Username, user.Email, user.Role, user.AvatarUrl));
         }
     }
 }

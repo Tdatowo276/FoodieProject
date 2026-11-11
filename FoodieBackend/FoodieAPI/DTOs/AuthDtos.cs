@@ -30,7 +30,7 @@ namespace FoodieAPI.DTOs
         string? Password
     );
 
-    public record AuthUser(int Id, string Name, string Email, string Role);
+    public record AuthUser(int Id, string Name, string Email, string Role, string? AvatarUrl = null);
 
     public record AuthResult(string Token, DateTime ExpiresAt, AuthUser User);
 }
