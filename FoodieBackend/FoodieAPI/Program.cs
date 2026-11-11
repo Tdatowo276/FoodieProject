@@ -102,15 +102,20 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IStatsService, StatsService>();
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+// Tài liệu REST API: /swagger (xem Common/SwaggerSetup.cs)
+builder.Services.AddFoodieSwagger();
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.DocumentTitle = "Foodie API";
+        options.EnablePersistAuthorization();   // giữ token đã nhập khi tải lại trang
+        options.DisplayRequestDuration();
+    });
 }
 
 // 4. Seeder

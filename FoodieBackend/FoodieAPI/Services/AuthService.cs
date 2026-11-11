@@ -24,6 +24,9 @@ namespace FoodieAPI.Services
         /// <summary>Claim chuẩn dùng cho cả JWT và Cookie.</summary>
         List<Claim> BuildClaims(User user);
 
+        /// <summary>Thông tin tài khoản hiện tại, đọc mới từ CSDL (không chỉ dựa vào claim trong token).</summary>
+        Task<AuthUser> GetProfileAsync(int userId);
+
         /// <summary>
         /// Kiểm tra lại phiên đăng nhập ở mỗi request: tài khoản còn tồn tại, chưa bị khóa
         /// và vai trò không đổi so với lúc đăng nhập. Nhờ vậy khóa tài khoản có hiệu lực ngay.
@@ -105,6 +108,13 @@ namespace FoodieAPI.Services
             new("name", user.Username),
             new("role", user.Role)
         ];
+
+        public async Task<AuthUser> GetProfileAsync(int userId) =>
+            await db.Users.AsNoTracking()
+                .Where(u => u.Id == userId)
+                .Select(u => new AuthUser(u.Id, u.Username, u.Email, u.Role))
+                .FirstOrDefaultAsync()
+            ?? throw new ApiException(401, "Tài khoản không còn tồn tại. Vui lòng đăng nhập lại.");
 
         public async Task<bool> IsSessionValidAsync(ClaimsPrincipal principal)
         {

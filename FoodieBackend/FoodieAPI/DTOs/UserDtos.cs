@@ -1,5 +1,13 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace FoodieAPI.DTOs
 {
+    /// <summary>Khóa (true) hoặc mở khóa (false) tài khoản.</summary>
+    public record SetLockedRequest(
+        [property: Required(ErrorMessage = "Vui lòng cho biết khóa (true) hay mở khóa (false).")]
+        bool? Locked
+    );
+
     public record UserDto(
         int Id,
         string Name,

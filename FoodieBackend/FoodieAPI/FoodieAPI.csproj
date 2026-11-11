@@ -4,6 +4,9 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Sinh file XML từ chú thích /// để Swagger hiển thị mô tả; tắt cảnh báo thiếu chú thích (CS1591) -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
     <UserSecretsId>c5448e6b-5757-42a5-bc78-5bceb43e6ff0</UserSecretsId>
   </PropertyGroup>
 
