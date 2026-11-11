@@ -1,0 +1,13 @@
+@{
+    ViewData["Title"] = "Không có quyền";
+    Layout = "_AuthLayout";
+}
+
+<div class="card shadow-sm text-center">
+    <div class="card-body p-4">
+        <div class="display-6 text-danger mb-2"><i class="bi bi-shield-lock"></i></div>
+        <h2 class="h5">Bạn không có quyền truy cập trang này</h2>
+        <p class="text-secondary">Khu vực này chỉ dành cho quản trị viên.</p>
+        <a class="btn btn-primary" asp-action="Login">Đăng nhập bằng tài khoản khác</a>
+    </div>
+</div>

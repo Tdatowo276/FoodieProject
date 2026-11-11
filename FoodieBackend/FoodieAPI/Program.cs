@@ -1,9 +1,10 @@
 using System.Text;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using System.Text.Encodings.Web;
+using System.Text.Unicode;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Extensions.WebEncoders;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using System.Threading.RateLimiting;
 using FoodieAPI.Data;
 using FoodieAPI.Common;
@@ -37,26 +38,35 @@ var jwt = new JwtSettings(
     config.GetValue("Jwt:ExpiresMinutes", 60));
 builder.Services.AddSingleton(jwt);
 
-builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.MapInboundClaims = false;
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidIssuer = jwt.Issuer,
-            ValidateAudience = true,
-            ValidAudience = jwt.Audience,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.Key)),
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.FromSeconds(30),
-            NameClaimType = "name",
-            RoleClaimType = "role"
-        };
-    });
-builder.Services.AddAuthorizationBuilder().AddPolicy("Admin", policy => policy.RequireRole(Roles.Admin));
+// JWT cho /api (React) + Cookie cho khu Admin MVC. Xem Common/AuthenticationSetup.cs
+builder.Services.AddFoodieAuthentication(jwt);
+
+// MVC (khu Admin): mọi action POST/PUT/DELETE tự động yêu cầu Anti-forgery token (chống CSRF)
+builder.Services.AddControllersWithViews(options =>
+    options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "X-CSRF-TOKEN";         // AJAX trong trang admin gửi token qua header này
+    options.Cookie.Name = "Foodie.Antiforgery";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+});
+
+// Razor giữ nguyên chữ tiếng Việt thay vì mã hóa thành &#x...; (HTML nhẹ và dễ đọc hơn).
+// Các ký tự nguy hiểm < > & " ' vẫn luôn được mã hóa nên không ảnh hưởng chống XSS.
+builder.Services.Configure<WebEncoderOptions>(options =>
+    options.TextEncoderSettings = new TextEncoderSettings(UnicodeRanges.All));
+
+// Session: ghi nhớ bộ lọc / trang đang xem của admin giữa các lần chuyển trang
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.Cookie.Name = "Foodie.Session";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.IsEssential = true;
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+});
 
 // 3. CORS, Rate Limiter
 var origins = config.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? ["http://localhost:5173", "http://localhost:3000"];
@@ -115,40 +125,73 @@ using (var scope = app.Services.CreateScope())
 }
 
 // 5. Middleware Pipeline
-app.UseMiddleware<ErrorHandlingMiddleware>();
-
-app.UseStatusCodePages(async context =>
+if (!app.Environment.IsDevelopment())
 {
-    var response = context.HttpContext.Response;
-    var title = response.StatusCode switch
+    app.UseHsts();                  // trình duyệt chỉ dùng HTTPS cho site này
+    app.UseHttpsRedirection();
+}
+
+// Header bảo mật cho mọi response
+app.Use(async (context, next) =>
+{
+    var headers = context.Response.Headers;
+    headers["X-Content-Type-Options"] = "nosniff";            // chặn trình duyệt đoán sai kiểu file
+    headers["X-Frame-Options"] = "DENY";                      // chặn nhúng trang vào iframe (clickjacking)
+    headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    await next();
+});
+
+// Xử lý lỗi toàn cục, tách theo loại client:
+//  - /api/* : trả JSON ProblemDetails cho React
+//  - MVC    : chuyển tới trang lỗi HTML thân thiện (ErrorController)
+app.UseWhen(ctx => AuthenticationSetup.IsApiRequest(ctx.Request), api =>
+{
+    api.UseMiddleware<ErrorHandlingMiddleware>();
+    api.UseStatusCodePages(async context =>
     {
-        401 => "Bạn cần đăng nhập để tiếp tục.",
-        403 => "Bạn không có quyền thực hiện thao tác này.",
-        404 => "Không tìm thấy tài nguyên yêu cầu.",
-        429 => "Bạn thao tác quá nhanh. Vui lòng thử lại sau ít phút.",
-        _ => "Yêu cầu không thành công."
-    };
-    await response.WriteAsJsonAsync(
-        new ProblemDetails { Title = title, Status = response.StatusCode },
-        options: null,
-        contentType: "application/problem+json");
+        var response = context.HttpContext.Response;
+        var title = response.StatusCode switch
+        {
+            401 => "Bạn cần đăng nhập để tiếp tục.",
+            403 => "Bạn không có quyền thực hiện thao tác này.",
+            404 => "Không tìm thấy tài nguyên yêu cầu.",
+            429 => "Bạn thao tác quá nhanh. Vui lòng thử lại sau ít phút.",
+            _ => "Yêu cầu không thành công."
+        };
+        await response.WriteAsJsonAsync(
+            new ProblemDetails { Title = title, Status = response.StatusCode },
+            options: null,
+            contentType: "application/problem+json");
+    });
 });
-
-app.UseStaticFiles(new StaticFileOptions
+app.UseWhen(ctx => !AuthenticationSetup.IsApiRequest(ctx.Request), mvc =>
 {
-    OnPrepareResponse = ctx => ctx.Context.Response.Headers["X-Content-Type-Options"] = "nosniff"
+    mvc.UseExceptionHandler("/Error");                   // tự ghi log lỗi chưa xử lý
+    mvc.UseStatusCodePagesWithReExecute("/Error/{0}");
 });
 
+app.UseStaticFiles();
+
+// Định dạng số / ngày trên trang Admin theo kiểu Việt Nam (1.250.000đ, 12/11/2026)
+app.UseRequestLocalization("vi-VN");
+
+app.UseRouting();
 app.UseCors();
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseSession();
 
-// Map các Endpoint
+// Web API (Minimal API) cho React
 app.MapAuth();
 app.MapProducts();
 app.MapOrders();
 app.MapAdmin();
+
+// MVC: khu Admin ( /Admin/{controller}/{action}/{id?} ) và trang lỗi chung
+app.MapControllerRoute("areas", "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
+app.MapControllerRoute("default", "{controller}/{action=Index}/{id?}");
+app.MapGet("/", () => Results.Redirect("/Admin")).ExcludeFromDescription();
 
 app.Run();
 

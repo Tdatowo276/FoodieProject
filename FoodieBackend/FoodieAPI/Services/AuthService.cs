@@ -23,6 +23,12 @@ namespace FoodieAPI.Services
 
         /// <summary>Claim chuẩn dùng cho cả JWT và Cookie.</summary>
         List<Claim> BuildClaims(User user);
+
+        /// <summary>
+        /// Kiểm tra lại phiên đăng nhập ở mỗi request: tài khoản còn tồn tại, chưa bị khóa
+        /// và vai trò không đổi so với lúc đăng nhập. Nhờ vậy khóa tài khoản có hiệu lực ngay.
+        /// </summary>
+        Task<bool> IsSessionValidAsync(ClaimsPrincipal principal);
     }
 
     public sealed class AuthService(AppDbContext db, ILogger<AuthService> logger) : IAuthService
@@ -99,6 +105,18 @@ namespace FoodieAPI.Services
             new("name", user.Username),
             new("role", user.Role)
         ];
+
+        public async Task<bool> IsSessionValidAsync(ClaimsPrincipal principal)
+        {
+            if (!int.TryParse(principal.FindFirstValue(JwtRegisteredClaimNames.Sub), out var userId)) return false;
+            var role = principal.FindFirstValue("role");
+
+            var valid = await db.Users.AsNoTracking()
+                .AnyAsync(u => u.Id == userId && !u.IsLocked && u.Role == role);
+
+            if (!valid) logger.LogWarning("Từ chối phiên đăng nhập của {UserId}: tài khoản bị khóa, bị xóa hoặc đổi vai trò", userId);
+            return valid;
+        }
     }
 
     /// <summary>Phát JWT cho API (React).</summary>
