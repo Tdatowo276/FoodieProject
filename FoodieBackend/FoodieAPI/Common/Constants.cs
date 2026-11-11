@@ -16,14 +16,45 @@ namespace FoodieAPI.Common
         public const string Completed = "completed";
         public const string Cancelled = "cancelled";
 
-        private static readonly string[] All = [Pending, Preparing, Delivering, Completed, Cancelled];
+        public static readonly string[] All = [Pending, Preparing, Delivering, Completed, Cancelled];
         public static bool IsValid(string? value) => value is not null && All.Contains(value);
+
+        /// <summary>
+        /// Luồng xử lý đơn: pending -> preparing -> delivering -> completed.
+        /// Chỉ hủy được khi đơn chưa giao. completed / cancelled là trạng thái cuối.
+        /// </summary>
+        public static bool CanChange(string from, string to) => (from, to) switch
+        {
+            (Pending, Preparing or Cancelled) => true,
+            (Preparing, Delivering or Cancelled) => true,
+            (Delivering, Completed) => true,
+            _ => false
+        };
+
+        public static IReadOnlyList<string> NextOf(string from) => All.Where(to => CanChange(from, to)).ToList();
+
+        public static string Label(string status) => status switch
+        {
+            Pending => "Chờ xác nhận",
+            Preparing => "Đang chuẩn bị",
+            Delivering => "Đang giao",
+            Completed => "Hoàn thành",
+            Cancelled => "Đã hủy",
+            _ => status
+        };
     }
 
     public static class PaymentMethods
     {
         public const string Cod = "cod";
         public const string Bank = "bank";
+
+        public static string Label(string method) => method switch
+        {
+            Cod => "Tiền mặt khi nhận hàng",
+            Bank => "Chuyển khoản",
+            _ => method
+        };
     }
 
     public static class Limits
@@ -37,5 +68,9 @@ namespace FoodieAPI.Common
     public static class Patterns
     {
         public static readonly Regex Email = new(@"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.Compiled);
+
+        // Đường dẫn ảnh do hệ thống tự sinh khi upload (GUID 32 ký tự hex)
+        public const string UploadedImagePattern = @"^/uploads/[0-9a-f]{32}\.(jpg|png)$";
+        public static readonly Regex UploadedImage = new(UploadedImagePattern, RegexOptions.Compiled);
     }
 }

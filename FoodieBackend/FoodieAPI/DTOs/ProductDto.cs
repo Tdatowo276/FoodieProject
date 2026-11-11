@@ -31,11 +31,20 @@ namespace FoodieAPI.DTOs
         [property: StringLength(300, ErrorMessage = "Mô tả tối đa 300 ký tự.")]
         string? Description,
 
-        [property: RegularExpression(@"^/uploads/[0-9a-f]{32}\.(jpg|png)$",
+        [property: RegularExpression(FoodieAPI.Common.Patterns.UploadedImagePattern,
             ErrorMessage = "Đường dẫn ảnh không hợp lệ. Hãy dùng ảnh đã tải lên từ hệ thống.")]
         string? ImageUrl,
 
         bool IsFeatured = false
+    );
+
+    /// <summary>Tiêu chí lọc + phân trang danh sách món. Page = null nghĩa là không phân trang.</summary>
+    public record ProductQuery(
+        int? Page = null,
+        int? PageSize = null,
+        int? CategoryId = null,
+        string? Category = null,   // lọc theo tên danh mục (React đang dùng)
+        string? Keyword = null
     );
 
     public record UploadResult(string Url);

@@ -46,6 +46,36 @@ namespace FoodieAPI.DTOs
         string Status
     );
 
+    public record OrderItemDto(int? ProductId, string ProductName, long UnitPrice, int Quantity, long LineTotal);
+
+    public record OrderDetailDto(
+        string Code,
+        string CustomerName,
+        string Phone,
+        string Address,
+        string? Note,
+        string PaymentMethod,
+        string Status,
+        long Subtotal,
+        long ShippingFee,
+        long Total,
+        DateTime CreatedAt,
+        string AccountEmail,
+        IReadOnlyList<string> NextStatuses,     // các trạng thái admin được phép chuyển tới
+        IReadOnlyList<OrderItemDto> Items
+    );
+
+    /// <summary>Tóm tắt đơn cho trang "Đơn của tôi".</summary>
+    public record MyOrderDto(string Code, DateTime CreatedAt, long Total, string Status, int ItemCount);
+
+    /// <summary>Tiêu chí lọc danh sách đơn (admin).</summary>
+    public record OrderQuery(string? Status = null, string? Keyword = null, int? Page = null, int? PageSize = null);
+
+    public record OrderStatusRequest(
+        [property: Required(ErrorMessage = "Vui lòng chọn trạng thái.")]
+        string? Status
+    );
+
     public record Metric(long Value, double Growth);
 
     public record StatsDto(Metric Revenue, Metric Orders, Metric Customers);
