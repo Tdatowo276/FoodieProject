@@ -16,26 +16,31 @@ Có 3 cách:
 
 1. **Trang Admin → Món ăn → Sửa** → ô *"Hoặc chọn ảnh có sẵn"* → chọn file → Lưu.
 2. **Trang Admin → Món ăn → nút "Tự gắn ảnh theo tên"**: các món *chưa có ảnh* tự nhận file có tên trùng tên món.
-3. **Tạo CSDL mới** (máy mới clone, hoặc xóa DB tạo lại): 13 món mẫu tự được gắn ảnh nếu có file đúng tên bên dưới.
+3. **Tạo CSDL mới** (máy mới clone, hoặc xóa DB tạo lại): 15 món mẫu tự được gắn đúng ảnh theo bảng dưới
+   (khai báo trong `Data/Seeder.cs`).
 
-## Tên file cho 13 món mẫu
+## Ảnh của 15 món mẫu
 
-| Món | Tên file (đuôi .png / .jpg / .jpeg / .webp) |
-|---|---|
-| Burger bò phô mai | `burger-bo-pho-mai` |
-| Pizza hải sản | `pizza-hai-san` |
-| Gà rán giòn cay | `ga-ran-gion-cay` |
-| Khoai tây chiên | `khoai-tay-chien` |
-| Cơm tấm sườn bì chả | `com-tam-suon-bi-cha` |
-| Phở bò tái nạm | `pho-bo-tai-nam` |
-| Mì Ý sốt bò bằm | `mi-y-sot-bo-bam` |
-| Sushi tổng hợp 12 miếng | `sushi-tong-hop-12-mieng` |
-| Trà đào cam sả | `tra-dao-cam-sa` |
-| Cà phê sữa đá | `ca-phe-sua-da` |
-| Sinh tố bơ | `sinh-to-bo` |
-| Kem dâu tây | `kem-dau-tay` |
-| Bánh flan caramel | `banh-flan-caramel` |
+| Món | Danh mục | File ảnh |
+|---|---|---|
+| Mỳ ý sốt cay vừa | Món chính | `my-y-bo-bam.png` |
+| Salad rau củ | Đồ ăn nhanh | `salad-rau-cu.png` |
+| Viên phô mai | Đồ ăn nhanh | `vien-pho-mai.png` |
+| Gà Chiên Giòn | Món chính | `ga-ran-thuong.png` |
+| Burger bò | Món chính | `burger-bo.png` |
+| Burger gà | Món chính | `burger-ga.png` |
+| Gà sốt mật ong | Món chính | `ga-ran-sot-mat-ong.png` |
+| Trà Chanh Lipton | Đồ uống | `tra-lipton.png` |
+| Pepsi | Đồ uống | `pepsi.png` |
+| Mirinda | Đồ uống | `mirinda.png` |
+| Kem Vani | Tráng miệng | `kem-vani.png` |
+| Gà giòn nguyên con | Món chính | `ga-ran-nua-con.png` |
+| Combo Burger Gà Giòn | Combo Siêu Ưu Đãi | `combo-burger-ga-them-pepsi.png` |
+| Combo Burger | Combo Siêu Ưu Đãi | `combo-2-burger-them-pepsi.png` |
+| Cơm trắng | Đồ ăn kèm | `com-trang.png` |
 
-Món mới do admin thêm cũng theo quy tắc trên: bỏ dấu, viết thường, thay khoảng trắng bằng `-`.
+Muốn đổi ảnh của món mẫu: thay file cùng tên ở thư mục này (không cần sửa code).
+Nút "Tự gắn ảnh theo tên" dùng quy tắc tên món → tên file: bỏ dấu, viết thường, thay khoảng trắng bằng `-`
+(ví dụ "Burger gà" → `burger-ga.png`).
 
 ⚠️ Không đổi tên / xóa file đang được món sử dụng: món đó sẽ mất ảnh (CSDL vẫn trỏ tới tên cũ).

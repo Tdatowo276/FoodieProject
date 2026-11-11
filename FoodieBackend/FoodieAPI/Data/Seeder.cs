@@ -40,13 +40,17 @@ namespace FoodieAPI.Data
                 });
             }
 
+            // Thực đơn mẫu = thực đơn thật của nhóm (xuất từ CSDL ngày 12/11/2026).
+            // Thứ tự danh mục quyết định thứ tự tab trên trang chủ.
             if (!await db.Categories.AnyAsync())
             {
                 db.Categories.AddRange(
                     new Category { Name = "Đồ ăn nhanh", Description = "Burger, pizza, gà rán và các món ăn nhanh" },
                     new Category { Name = "Món chính", Description = "Cơm, phở, mì và các món no bụng" },
-                    new Category { Name = "Đồ uống", Description = "Trà, cà phê, sinh tố" },
-                    new Category { Name = "Tráng miệng", Description = "Kem, bánh ngọt, flan" });
+                    new Category { Name = "Đồ uống" },
+                    new Category { Name = "Tráng miệng", Description = "Kem, bánh ngọt, flan" },
+                    new Category { Name = "Combo Siêu Ưu Đãi" },
+                    new Category { Name = "Đồ ăn kèm" });
                 await db.SaveChangesAsync();
             }
 
@@ -54,35 +58,45 @@ namespace FoodieAPI.Data
             {
                 var categories = await db.Categories.ToDictionaryAsync(c => c.Name);
 
-                var seed = new (string Name, string Category, long Price, double Rating, bool Featured, string Description)[]
+                // Image: tên file trong wwwroot/images/products (thiếu file thì món chưa có ảnh, không lỗi)
+                var seed = new (string Name, string Category, long Price, double Rating, bool Featured, string Image, string Description)[]
                 {
-                    ("Burger bò phô mai", "Đồ ăn nhanh", 59000, 4.8, true, "Bò nướng than, phô mai cheddar tan chảy, rau tươi và sốt đặc biệt."),
-                    ("Pizza hải sản", "Đồ ăn nhanh", 129000, 4.7, true, "Đế mỏng giòn, tôm, mực, nghêu và phô mai mozzarella."),
-                    ("Gà rán giòn cay", "Đồ ăn nhanh", 75000, 4.9, true, "Gà tẩm bột chiên giòn, ướp cay vừa phải, kèm sốt mayonnaise."),
-                    ("Khoai tây chiên", "Đồ ăn nhanh", 29000, 4.5, false, "Khoai cắt sợi chiên vàng, rắc muối biển, kèm tương cà."),
-                    ("Cơm tấm sườn bì chả", "Món chính", 55000, 4.9, true, "Sườn nướng mật ong, bì, chả trứng và nước mắm chua ngọt."),
-                    ("Phở bò tái nạm", "Món chính", 60000, 4.8, true, "Nước dùng hầm xương 12 tiếng, bánh phở mềm, thịt bò tái và nạm."),
-                    ("Mì Ý sốt bò bằm", "Món chính", 69000, 4.6, false, "Mì Ý al dente, sốt cà chua bò bằm, rắc phô mai parmesan."),
-                    ("Sushi tổng hợp 12 miếng", "Món chính", 159000, 4.7, false, "Cá hồi, cá ngừ, tôm và trứng cá, kèm wasabi và nước tương."),
-                    ("Trà đào cam sả", "Đồ uống", 35000, 4.8, true, "Trà đen ủ lạnh, đào miếng, cam tươi và sả thơm."),
-                    ("Cà phê sữa đá", "Đồ uống", 29000, 4.9, false, "Cà phê phin đậm vị pha cùng sữa đặc, đá viên."),
-                    ("Sinh tố bơ", "Đồ uống", 42000, 4.7, false, "Bơ sáp xay cùng sữa tươi, béo mịn, ít ngọt."),
-                    ("Kem dâu tây", "Tráng miệng", 32000, 4.5, false, "Kem tươi mát lạnh vị dâu, topping dâu tây thái lát."),
-                    ("Bánh flan caramel", "Tráng miệng", 22000, 4.8, true, "Flan trứng sữa mịn như lụa, rưới caramel đắng nhẹ."),
+                    ("Mỳ ý sốt cay vừa", "Món chính", 49000, 4.7, true, "my-y-bo-bam.png", "Chưa có mô tả cho sản phẩm này"),
+                    ("Salad rau củ", "Đồ ăn nhanh", 25000, 4.9, false, "salad-rau-cu.png", "Chưa có mô tả cho sản phẩm này."),
+                    ("Viên phô mai", "Đồ ăn nhanh", 32000, 4.5, false, "vien-pho-mai.png", "Viên Phô Mai Hoàng Kim: 3 viên"),
+                    ("Gà Chiên Giòn", "Món chính", 38000, 4.9, true, "ga-ran-thuong.png", "Miếng gà chiên giòn (miếng ngẫu nhiên)"),
+                    ("Burger bò", "Món chính", 57000, 4.8, true, "burger-bo.png", "01 Burger bò"),
+                    ("Burger gà", "Món chính", 50000, 4.6, true, "burger-ga.png", "01 Burger gà cay / không cay"),
+                    ("Gà sốt mật ong", "Món chính", 195000, 4.7, true, "ga-ran-sot-mat-ong.png", "01 Gà sốt mật ong nguyên con - 1/2 Gà sốt mật ong nguyên con"),
+                    ("Trà Chanh Lipton", "Đồ uống", 29000, 4.8, false, "tra-lipton.png", "Trà chanh Lipton siu ngon."),
+                    ("Pepsi", "Đồ uống", 15000, 4.9, false, "pepsi.png", "Đồ uống nhanh."),
+                    ("Mirinda", "Đồ uống", 15000, 4.7, false, "mirinda.png", "Đồ uống nhanh."),
+                    ("Kem Vani", "Tráng miệng", 10000, 4.5, false, "kem-vani.png", "Kem tươi mát lạnh vị Vani siêu ngon."),
+                    ("Gà giòn nguyên con", "Món chính", 195000, 4.8, true, "ga-ran-nua-con.png", "01 Gà giòn nguyên con - 1/2 Gà giòn nguyên con"),
+                    ("Combo Burger Gà Giòn", "Combo Siêu Ưu Đãi", 59000, 0, false, "combo-burger-ga-them-pepsi.png", "1 Burger gà giòn + 1 Miếng gà chiên giòn + 1 Pepsi"),
+                    ("Combo Burger", "Combo Siêu Ưu Đãi", 69000, 0, true, "combo-2-burger-them-pepsi.png", "Combo bao gồm: - 2 Burger gà giòn  - 1 Pepsi"),
+                    ("Cơm trắng", "Đồ ăn kèm", 5000, 0, false, "com-trang.png", "Cơm trắng ngon."),
                 };
 
-                foreach (var s in seed)
+                var library = libraryImages.ToHashSet(StringComparer.Ordinal);
+                var createdAt = DateTime.UtcNow;
+                for (var i = 0; i < seed.Length; i++)
                 {
+                    var s = seed[i];
+                    var imageUrl = $"/{Patterns.LibraryFolder}/{s.Image}";
                     var product = new Product
                     {
                         Category = categories[s.Category],
                         Price = s.Price,
                         Rating = s.Rating,
                         IsFeatured = s.Featured,
-                        Description = s.Description
+                        Description = s.Description,
+                        // Giữ thứ tự hiển thị như danh sách trên (món ở cuối danh sách = mới nhất)
+                        CreatedAt = createdAt.AddSeconds(i),
+                        // Ưu tiên tên file ghi rõ; nếu không có thì thử file trùng tên món (ví dụ "pepsi.png")
+                        ImageUrl = library.Contains(imageUrl) ? imageUrl : imageBySlug.GetValueOrDefault(TextUtil.Slug(s.Name))
                     };
                     product.SetName(s.Name);
-                    product.ImageUrl = imageBySlug.GetValueOrDefault(TextUtil.Slug(s.Name));
                     db.Products.Add(product);
                 }
             }
