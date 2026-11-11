@@ -25,6 +25,11 @@ namespace FoodieAPI.Endpoints
             MapOrders(admin.MapGroup("/orders").WithTags("Quản trị - Đơn hàng"));
             MapUsers(admin.MapGroup("/users").WithTags("Quản trị - Người dùng"));
 
+            admin.MapGet("/images", (IImageStorage images) => images.ListLibrary())
+                .WithTags("Quản trị - Món ăn")
+                .WithSummary("Ảnh có sẵn trong thư mục wwwroot/images/products")
+                .WithDescription("Dùng một đường dẫn trong danh sách làm imageUrl khi thêm / sửa món.");
+
             // API dùng JWT trong header (không dùng cookie) nên không bị CSRF => tắt antiforgery cho form upload
             admin.MapPost("/uploads", async (IFormFile? file, IImageStorage images) =>
                     new UploadResult(await images.SaveAsync(file)))

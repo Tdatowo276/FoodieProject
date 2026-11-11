@@ -8,14 +8,45 @@ namespace FoodieAPI.Services
         /// <summary>Kiểm tra (đuôi, kích thước, nội dung thật) rồi lưu ảnh; trả về URL dạng /uploads/{guid}.png.</summary>
         Task<string> SaveAsync(IFormFile? file, CancellationToken ct = default);
 
-        /// <summary>Xóa ảnh cũ. Chỉ xóa file do hệ thống sinh ra, bỏ qua mọi đường dẫn lạ.</summary>
+        /// <summary>
+        /// Xóa ảnh cũ. Chỉ xóa file upload trong /uploads; KHÔNG BAO GIỜ xóa ảnh thư viện /images/products
+        /// (ảnh dùng chung của nhóm, có trên Git). Bỏ qua mọi đường dẫn lạ.
+        /// </summary>
         void Delete(string? url);
+
+        /// <summary>Danh sách ảnh trong thư viện wwwroot/images/products, dạng "/images/products/ten-file.png".</summary>
+        IReadOnlyList<string> ListLibrary();
+
+        /// <summary>Đường dẫn ảnh món hợp lệ (đúng mẫu /uploads hoặc /images/products) và file có thật trên đĩa.</summary>
+        bool Exists(string url);
     }
 
     public sealed class ImageStorage(IWebHostEnvironment env, ILogger<ImageStorage> logger, ICurrentUser currentUser)
         : IImageStorage
     {
-        private string Folder => Path.Combine(env.WebRootPath ?? Path.Combine(env.ContentRootPath, "wwwroot"), "uploads");
+        private string WebRoot => env.WebRootPath ?? Path.Combine(env.ContentRootPath, "wwwroot");
+        private string Folder => Path.Combine(WebRoot, "uploads");
+        private string LibraryFolder => Path.Combine(WebRoot, Patterns.LibraryFolder.Replace('/', Path.DirectorySeparatorChar));
+
+        public IReadOnlyList<string> ListLibrary()
+        {
+            if (!Directory.Exists(LibraryFolder)) return [];
+            return Directory.EnumerateFiles(LibraryFolder)
+                .Select(path => $"/{Patterns.LibraryFolder}/{Path.GetFileName(path)}")
+                .Where(url => Patterns.LibraryImage.IsMatch(url))   // bỏ qua README, file sai tên (có dấu, khoảng trắng...)
+                .Order(StringComparer.Ordinal)
+                .ToList();
+        }
+
+        public bool Exists(string url)
+        {
+            // Chỉ ghép đường dẫn sau khi đã khớp mẫu => tên file không thể chứa "..", "/" hay "\"
+            if (Patterns.UploadedImage.IsMatch(url))
+                return File.Exists(Path.Combine(Folder, Path.GetFileName(url)));
+            if (Patterns.LibraryImage.IsMatch(url))
+                return File.Exists(Path.Combine(LibraryFolder, Path.GetFileName(url)));
+            return false;
+        }
 
         public async Task<string> SaveAsync(IFormFile? file, CancellationToken ct = default)
         {

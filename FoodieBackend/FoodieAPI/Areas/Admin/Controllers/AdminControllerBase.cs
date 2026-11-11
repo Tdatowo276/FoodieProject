@@ -23,8 +23,12 @@ namespace FoodieAPI.Areas.Admin.Controllers
         protected void FlashSuccess(string message) => TempData[SuccessKey] = message;
         protected void FlashError(string message) => TempData[ErrorKey] = message;
 
-        /// <summary>Chuyển lỗi nghiệp vụ từ Service thành lỗi ModelState để hiển thị ngay trên form.</summary>
-        protected void AddErrors(ApiException ex)
+        /// <summary>
+        /// Chuyển lỗi nghiệp vụ từ Service thành lỗi ModelState để hiển thị ngay trên form.
+        /// fieldMap: đổi tên trường của Service sang tên thuộc tính ViewModel khi khác nhau
+        /// (ví dụ "imageUrl" => "LibraryImage"); trường không có trên form sẽ hiện ở thông báo chung.
+        /// </summary>
+        protected void AddErrors(ApiException ex, IReadOnlyDictionary<string, string>? fieldMap = null)
         {
             if (ex.Errors is null || ex.Errors.Count == 0)
             {
@@ -33,8 +37,11 @@ namespace FoodieAPI.Areas.Admin.Controllers
             }
 
             foreach (var (field, messages) in ex.Errors)
+            {
+                var key = fieldMap is not null && fieldMap.TryGetValue(field, out var mapped) ? mapped : ToPropertyName(field);
                 foreach (var message in messages)
-                    ModelState.AddModelError(ToPropertyName(field), message);
+                    ModelState.AddModelError(key, message);
+            }
         }
 
         /// <summary>Request AJAX từ admin.js (trả về partial view thay vì cả trang).</summary>

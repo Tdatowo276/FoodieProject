@@ -72,5 +72,15 @@ namespace FoodieAPI.Common
         // Đường dẫn ảnh do hệ thống tự sinh khi upload (GUID 32 ký tự hex)
         public const string UploadedImagePattern = @"^/uploads/[0-9a-f]{32}\.(jpg|png)$";
         public static readonly Regex UploadedImage = new(UploadedImagePattern, RegexOptions.Compiled);
+
+        // Ảnh trong thư viện ảnh món của nhóm (wwwroot/images/products, có trên Git).
+        // Tên file chỉ gồm chữ thường không dấu, số, gạch ngang => không thể chèn "../" hay ký tự lạ.
+        public const string LibraryFolder = "images/products";
+        public const string LibraryImagePattern = @"^/images/products/[a-z0-9]+(-[a-z0-9]+)*\.(jpg|jpeg|png|webp)$";
+        public static readonly Regex LibraryImage = new(LibraryImagePattern, RegexOptions.Compiled);
+
+        // Ảnh món hợp lệ: ảnh upload HOẶC ảnh trong thư viện
+        public const string ProductImagePattern =
+            @"^(/uploads/[0-9a-f]{32}\.(jpg|png)|/images/products/[a-z0-9]+(-[a-z0-9]+)*\.(jpg|jpeg|png|webp))$";
     }
 }

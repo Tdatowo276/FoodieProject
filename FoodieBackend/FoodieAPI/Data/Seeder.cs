@@ -6,8 +6,19 @@ namespace FoodieAPI.Data
 {
     public static class Seeder
     {
-        public static async Task RunAsync(AppDbContext db, IConfiguration config)
+        /// <summary>Tạo dữ liệu mẫu (admin, danh mục, món) khi CSDL còn trống.</summary>
+        /// <param name="db">DbContext.</param>
+        /// <param name="config">Cấu hình chứa Seed:AdminEmail / Seed:AdminPassword.</param>
+        /// <param name="libraryImages">
+        /// Ảnh trong wwwroot/images/products. Món mẫu tự được gắn ảnh nếu có file trùng tên món
+        /// (ví dụ "Phở bò tái nạm" => pho-bo-tai-nam.png), nên DB tạo mới trên máy nào cũng có ảnh.
+        /// </param>
+        public static async Task RunAsync(AppDbContext db, IConfiguration config, IReadOnlyList<string> libraryImages)
         {
+            var imageBySlug = libraryImages
+                .GroupBy(url => Path.GetFileNameWithoutExtension(url))
+                .ToDictionary(g => g.Key, g => g.First());
+
             if (!await db.Users.AnyAsync(u => u.Role == Roles.Admin))
             {
                 // Mật khẩu admin không được viết cứng: lấy từ User Secrets / biến môi trường Seed__AdminPassword.
@@ -71,6 +82,7 @@ namespace FoodieAPI.Data
                         Description = s.Description
                     };
                     product.SetName(s.Name);
+                    product.ImageUrl = imageBySlug.GetValueOrDefault(TextUtil.Slug(s.Name));
                     db.Products.Add(product);
                 }
             }

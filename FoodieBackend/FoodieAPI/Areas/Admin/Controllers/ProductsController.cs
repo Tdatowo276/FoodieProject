@@ -39,14 +39,14 @@ namespace FoodieAPI.Areas.Admin.Controllers
 
             try
             {
-                var created = await products.CreateAsync(model.ToRequest(uploaded));
+                var created = await products.CreateAsync(model.ToRequest(uploaded ?? NullIfEmpty(model.LibraryImage)));
                 FlashSuccess($"Đã thêm món \"{created.Name}\".");
                 return RedirectToAction(nameof(Index));
             }
             catch (ApiException ex)
             {
                 images.Delete(uploaded);   // lưu thất bại => không để lại ảnh mồ côi
-                AddErrors(ex);
+                AddErrors(ex, ImageFieldMap);
                 return View("Form", await WithCategoriesAsync(model));
             }
         }
@@ -85,8 +85,9 @@ namespace FoodieAPI.Areas.Admin.Controllers
             var uploaded = await TryUploadAsync(model);
             if (!ModelState.IsValid) return View("Form", await WithCategoriesAsync(model));
 
-            // Ảnh mới > xóa ảnh > giữ ảnh cũ. Service tự xóa file ảnh cũ nếu không còn dùng.
-            var imageUrl = uploaded ?? (model.RemoveImage ? null : existing.ImageUrl);
+            // Ảnh upload mới > ảnh chọn từ thư viện > xóa ảnh > giữ ảnh cũ.
+            // Service kiểm tra ảnh có thật, và tự xóa file upload cũ nếu không còn dùng (ảnh thư viện không bao giờ bị xóa).
+            var imageUrl = uploaded ?? NullIfEmpty(model.LibraryImage) ?? (model.RemoveImage ? null : existing.ImageUrl);
 
             try
             {
@@ -97,7 +98,7 @@ namespace FoodieAPI.Areas.Admin.Controllers
             catch (ApiException ex)
             {
                 images.Delete(uploaded);
-                AddErrors(ex);
+                AddErrors(ex, ImageFieldMap);
                 return View("Form", await WithCategoriesAsync(model));
             }
         }
@@ -118,7 +119,24 @@ namespace FoodieAPI.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        /// <summary>Gắn ảnh trong thư mục images/products cho các món chưa có ảnh, theo tên món.</summary>
+        [HttpPost]
+        public async Task<IActionResult> AssignLibraryImages()
+        {
+            var count = await products.AssignLibraryImagesAsync();
+            if (count > 0)
+                FlashSuccess($"Đã gắn ảnh cho {count} món.");
+            else
+                FlashError("Không có món nào được gắn ảnh. Kiểm tra tên file trong images/products có khớp tên món (không dấu, nối bằng gạch ngang) và món đó chưa có ảnh.");
+            return RedirectToAction(nameof(Index));
+        }
+
         // ---------------------------------------------------------------------
+
+        // Lỗi ảnh từ Service (key "imageUrl") hiện dưới ô chọn ảnh thư viện
+        private static readonly Dictionary<string, string> ImageFieldMap = new() { ["imageUrl"] = nameof(ProductFormViewModel.LibraryImage) };
+
+        private static string? NullIfEmpty(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
         /// <summary>Lưu ảnh nếu có chọn file; lỗi (sai định dạng, quá 2MB...) gắn vào ô ImageFile.</summary>
         private async Task<string?> TryUploadAsync(ProductFormViewModel model)
@@ -142,6 +160,9 @@ namespace FoodieAPI.Areas.Admin.Controllers
             model.Categories = all
                 .Where(c => c.IsActive || c.Id == model.CategoryId)
                 .Select(c => new SelectListItem(c.IsActive ? c.Name : $"{c.Name} (đang ẩn)", c.Id.ToString()))
+                .ToList();
+            model.LibraryImages = images.ListLibrary()
+                .Select(url => new SelectListItem(Path.GetFileName(url), url))
                 .ToList();
             return model;
         }

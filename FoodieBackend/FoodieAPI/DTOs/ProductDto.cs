@@ -31,8 +31,9 @@ namespace FoodieAPI.DTOs
         [property: StringLength(300, ErrorMessage = "Mô tả tối đa 300 ký tự.")]
         string? Description,
 
-        [property: RegularExpression(FoodieAPI.Common.Patterns.UploadedImagePattern,
-            ErrorMessage = "Đường dẫn ảnh không hợp lệ. Hãy dùng ảnh đã tải lên từ hệ thống.")]
+        // /uploads/{guid}.png (ảnh upload) hoặc /images/products/{ten-file}.png (thư viện ảnh)
+        [property: RegularExpression(FoodieAPI.Common.Patterns.ProductImagePattern,
+            ErrorMessage = "Đường dẫn ảnh không hợp lệ. Hãy dùng ảnh đã tải lên hoặc ảnh trong thư mục images/products.")]
         string? ImageUrl,
 
         bool IsFeatured = false

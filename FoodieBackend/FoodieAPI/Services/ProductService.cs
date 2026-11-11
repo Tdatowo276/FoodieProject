@@ -22,6 +22,12 @@ namespace FoodieAPI.Services
         Task<ProductDto> CreateAsync(ProductRequest req);
         Task<ProductDto> UpdateAsync(int id, ProductRequest req);
         Task DeleteAsync(int id);
+
+        /// <summary>
+        /// Gắn ảnh thư viện cho các món CHƯA có ảnh, dựa theo tên món
+        /// ("Burger bò phô mai" => /images/products/burger-bo-pho-mai.png). Trả về số món được gắn.
+        /// </summary>
+        Task<int> AssignLibraryImagesAsync();
     }
 
     public sealed class ProductService(
@@ -107,6 +113,30 @@ namespace FoodieAPI.Services
             logger.LogInformation("{Actor} xóa món #{Id} \"{Name}\"", currentUser.Describe(), id, product.Name);
         }
 
+        public async Task<int> AssignLibraryImagesAsync()
+        {
+            // Tên file (không đuôi) => đường dẫn; nếu trùng tên khác đuôi thì lấy file đầu tiên
+            var library = images.ListLibrary()
+                .GroupBy(url => Path.GetFileNameWithoutExtension(url))
+                .ToDictionary(g => g.Key, g => g.First());
+
+            var missing = await db.Products.Where(p => p.ImageUrl == null).ToListAsync();
+            var assigned = 0;
+            foreach (var p in missing)
+            {
+                if (library.TryGetValue(TextUtil.Slug(p.Name), out var url))
+                {
+                    p.ImageUrl = url;
+                    assigned++;
+                }
+            }
+
+            await db.SaveChangesAsync();
+            logger.LogInformation("{Actor} tự gắn ảnh thư viện cho {Count}/{Missing} món chưa có ảnh",
+                currentUser.Describe(), assigned, missing.Count);
+            return assigned;
+        }
+
         // ---------------------------------------------------------------------
 
         private async Task DeleteImageIfUnusedAsync(string? url)
@@ -156,11 +186,19 @@ namespace FoodieAPI.Services
             if (!category.IsActive && product.CategoryId != category.Id)
                 throw ApiException.Validation("categoryId", "Danh mục này đang bị ẩn, hãy chọn danh mục khác.");
 
+            // Ảnh phải đúng mẫu (/uploads/... hoặc /images/products/...) và file có thật
+            // (áp dụng cho cả API lẫn trang Admin MVC)
+            var imageUrl = string.IsNullOrWhiteSpace(r.ImageUrl) ? null : r.ImageUrl.Trim();
+            // Giữ nguyên ảnh cũ thì không kiểm tra lại, để vẫn sửa được giá/tên dù file ảnh cũ đã mất
+            if (imageUrl is not null && imageUrl != product.ImageUrl && !images.Exists(imageUrl))
+                throw ApiException.Validation("imageUrl",
+                    "Không tìm thấy file ảnh. Kiểm tra lại tên file trong thư mục images/products hoặc tải ảnh lên lại.");
+
             product.SetName(name);
             product.Category = category;
             product.Price = r.Price!.Value;
             product.Description = string.IsNullOrWhiteSpace(r.Description) ? null : r.Description.Trim();
-            product.ImageUrl = string.IsNullOrWhiteSpace(r.ImageUrl) ? null : r.ImageUrl.Trim();
+            product.ImageUrl = imageUrl;
             product.IsFeatured = r.IsFeatured;
         }
     }

@@ -56,6 +56,23 @@
                             <input asp-for="ImageFile" type="file" class="form-control" accept=".jpg,.jpeg,.png,image/jpeg,image/png"
                                    data-max-bytes="@Limits.MaxImageBytes" data-preview="#image-preview" />
                             <span asp-validation-for="ImageFile" class="text-danger small"></span>
+
+                            <label asp-for="LibraryImage" class="form-label mt-3 mb-1 small"></label>
+                            @if (Model.LibraryImages.Count == 0)
+                            {
+                                <div class="form-text">
+                                    Thư mục <code>wwwroot/images/products</code> chưa có ảnh hợp lệ
+                                    (tên file không dấu, nối bằng gạch ngang, ví dụ <code>pho-bo-tai-nam.png</code>).
+                                </div>
+                            }
+                            else
+                            {
+                                <select asp-for="LibraryImage" asp-items="Model.LibraryImages" class="form-select" data-preview="#image-preview">
+                                    <option value="">-- Không đổi --</option>
+                                </select>
+                            }
+                            <span asp-validation-for="LibraryImage" class="text-danger small"></span>
+
                             @if (Model.CurrentImageUrl is not null)
                             {
                                 <div class="form-check mt-2">

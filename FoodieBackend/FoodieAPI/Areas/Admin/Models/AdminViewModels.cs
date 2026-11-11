@@ -58,8 +58,14 @@ namespace FoodieAPI.Areas.Admin.Models
         [Display(Name = "Ảnh món (JPG/PNG, tối đa 2MB)")]
         public IFormFile? ImageFile { get; set; }
 
+        // Chọn ảnh có sẵn trong thư mục wwwroot/images/products (rỗng = không đổi)
+        [Display(Name = "Hoặc chọn ảnh có sẵn (thư mục images/products)")]
+        public string? LibraryImage { get; set; }
+
         [Display(Name = "Xóa ảnh hiện tại")]
         public bool RemoveImage { get; set; }
+
+        public List<SelectListItem> LibraryImages { get; set; } = [];
 
         // Chỉ để hiển thị; khi lưu, ảnh hiện tại luôn được đọc lại từ CSDL (không tin giá trị client gửi)
         public string? CurrentImageUrl { get; set; }

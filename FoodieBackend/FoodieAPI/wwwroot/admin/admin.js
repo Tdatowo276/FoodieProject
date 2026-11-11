@@ -132,6 +132,24 @@
     });
 
     // ------------------------------------------------------------------
+    // 4b. Chọn ảnh có sẵn trong thư viện: xem trước ngay (<select data-preview="#img">)
+    // ------------------------------------------------------------------
+    document.querySelectorAll('select[data-preview]').forEach(select => {
+        const preview = document.querySelector(select.dataset.preview);
+        if (!preview) return;
+        const original = preview.getAttribute('src');
+        select.addEventListener('change', () => {
+            const src = select.value || original;
+            if (src) {
+                preview.src = src;
+                preview.classList.remove('d-none');
+            } else {
+                preview.classList.add('d-none');
+            }
+        });
+    });
+
+    // ------------------------------------------------------------------
     // 4. Chọn ảnh: kiểm tra nhanh kích thước + xem trước (server vẫn kiểm tra lại)
     // ------------------------------------------------------------------
     document.querySelectorAll('input[type="file"][data-max-bytes]').forEach(input => {

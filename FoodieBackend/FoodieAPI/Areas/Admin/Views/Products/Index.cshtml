@@ -5,7 +5,14 @@
 
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
     <h1 class="h3 mb-0">Món ăn</h1>
-    <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-lg me-1"></i>Thêm món</a>
+    <div class="d-flex flex-wrap gap-2">
+        @* Gắn ảnh trong wwwroot/images/products cho món chưa có ảnh, theo tên món (không dấu, gạch ngang) *@
+        <form asp-action="AssignLibraryImages" method="post"
+              title="Ví dụ: món &quot;Phở bò tái nạm&quot; nhận file images/products/pho-bo-tai-nam.png">
+            <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-images me-1"></i>Tự gắn ảnh theo tên</button>
+        </form>
+        <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-lg me-1"></i>Thêm món</a>
+    </div>
 </div>
 
 @* Bộ lọc: hoạt động cả khi tắt JavaScript (GET thường); có JS thì admin.js lọc bằng AJAX *@

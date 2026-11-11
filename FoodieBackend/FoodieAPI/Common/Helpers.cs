@@ -22,6 +22,15 @@ namespace FoodieAPI.Common
             return sb.ToString().Replace('đ', 'd').Replace('Đ', 'D').ToLowerInvariant();
         }
 
+        /// <summary>"Burger bò phô mai" -> "burger-bo-pho-mai" (dùng làm tên file ảnh).</summary>
+        public static string Slug(string? text)
+        {
+            var sb = new StringBuilder();
+            foreach (var c in Normalize(text))
+                sb.Append(char.IsAsciiLetterOrDigit(c) ? c : '-');
+            return string.Join('-', sb.ToString().Split('-', StringSplitOptions.RemoveEmptyEntries));
+        }
+
         public static string? Keyword(string? keyword)
         {
             var normalized = Normalize(keyword);

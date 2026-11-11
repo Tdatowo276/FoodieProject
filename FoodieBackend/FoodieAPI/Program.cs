@@ -126,7 +126,7 @@ using (var scope = app.Services.CreateScope())
     await db.Database.MigrateAsync();
 
     if (app.Environment.IsDevelopment() || config.GetValue<bool>("Seed:Enabled"))
-        await Seeder.RunAsync(db, config);
+        await Seeder.RunAsync(db, config, scope.ServiceProvider.GetRequiredService<IImageStorage>().ListLibrary());
 }
 
 // 5. Middleware Pipeline
