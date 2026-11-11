@@ -1,0 +1,99 @@
+@model OrderDetailDto
+@{
+    ViewData["Title"] = "Đơn " + Model.Code;
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Đơn hàng</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@Model.Code</li>
+    </ol>
+</nav>
+
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <h1 class="h3 mb-0">Đơn @Model.Code</h1>
+    <span class="badge fs-6 text-bg-@AdminFormat.StatusColor(Model.Status)">@OrderStatuses.Label(Model.Status)</span>
+</div>
+
+<div class="row g-3">
+    <div class="col-12 col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-body">Món đã đặt</div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Món</th>
+                            <th class="text-end">Đơn giá</th>
+                            <th class="text-center">SL</th>
+                            <th class="text-end">Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var i in Model.Items)
+                        {
+                            <tr>
+                                <td>
+                                    @i.ProductName
+                                    @if (i.ProductId is null) { <span class="badge text-bg-light border ms-1">đã ngừng bán</span> }
+                                </td>
+                                <td class="text-end text-nowrap">@AdminFormat.Money(i.UnitPrice)</td>
+                                <td class="text-center">@i.Quantity</td>
+                                <td class="text-end text-nowrap">@AdminFormat.Money(i.LineTotal)</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr><td colspan="3" class="text-end">Tạm tính</td><td class="text-end text-nowrap">@AdminFormat.Money(Model.Subtotal)</td></tr>
+                        <tr><td colspan="3" class="text-end">Phí giao hàng</td><td class="text-end text-nowrap">@(Model.ShippingFee == 0 ? "Miễn phí" : AdminFormat.Money(Model.ShippingFee))</td></tr>
+                        <tr class="fw-semibold"><td colspan="3" class="text-end">Tổng cộng</td><td class="text-end text-nowrap">@AdminFormat.Money(Model.Total)</td></tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-lg-4">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header bg-body">Giao hàng</div>
+            <div class="card-body">
+                <dl class="mb-0">
+                    <dt>Người nhận</dt><dd>@Model.CustomerName</dd>
+                    <dt>Điện thoại</dt><dd>@Model.Phone</dd>
+                    <dt>Địa chỉ</dt><dd>@Model.Address</dd>
+                    @if (!string.IsNullOrEmpty(Model.Note)) { <dt>Ghi chú</dt><dd>@Model.Note</dd> }
+                    <dt>Thanh toán</dt><dd>@PaymentMethods.Label(Model.PaymentMethod)</dd>
+                    <dt>Đặt lúc</dt><dd>@AdminFormat.VnTime(Model.CreatedAt)</dd>
+                    <dt>Tài khoản đặt</dt><dd class="mb-0 text-break">@Model.AccountEmail</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-body">Cập nhật trạng thái</div>
+            <div class="card-body">
+                @if (Model.NextStatuses.Count == 0)
+                {
+                    <p class="text-secondary mb-0">Đơn đã ở trạng thái cuối, không thể thay đổi.</p>
+                }
+                else
+                {
+                    @* Chỉ hiện các bước hợp lệ; server vẫn kiểm tra lại luồng trạng thái *@
+                    <div class="d-grid gap-2">
+                        @foreach (var next in Model.NextStatuses)
+                        {
+                            var danger = next == OrderStatuses.Cancelled;
+                            <form asp-action="UpdateStatus" asp-route-id="@Model.Code" method="post"
+                                  data-confirm="@(danger ? "Hủy đơn " + Model.Code + "? Không thể hoàn tác." : null)">
+                                <input type="hidden" name="status" value="@next" />
+                                <button type="submit" class="btn w-100 @(danger ? "btn-outline-danger" : "btn-primary")">
+                                    @(danger ? "Hủy đơn" : "Chuyển sang: " + OrderStatuses.Label(next))
+                                </button>
+                            </form>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

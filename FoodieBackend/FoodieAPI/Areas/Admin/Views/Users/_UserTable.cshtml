@@ -1,0 +1,57 @@
+@model UserListViewModel
+
+@if (Model.Result.Items.Count == 0)
+{
+    <div class="card card-body text-center text-secondary shadow-sm">Không có tài khoản nào phù hợp.</div>
+    return;
+}
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Họ tên</th>
+                    <th class="d-none d-md-table-cell">Vai trò</th>
+                    <th class="d-none d-lg-table-cell">Ngày tạo</th>
+                    <th class="text-center">Đơn</th>
+                    <th>Trạng thái</th>
+                    <th class="text-end">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var u in Model.Result.Items)
+                {
+                    var isAdmin = u.Role == Roles.Admin;
+                    <tr>
+                        <td class="text-break">
+                            <div class="fw-medium">@u.Name</div>
+                            <div class="small text-secondary">@u.Email</div>
+                        </td>
+                        <td class="d-none d-md-table-cell">@(isAdmin ? "Quản trị viên" : "Khách hàng")</td>
+                        <td class="d-none d-lg-table-cell text-nowrap">@AdminFormat.VnTime(u.CreatedAt)</td>
+                        <td class="text-center">@u.OrderCount</td>
+                        <td>
+                            <span class="badge @(u.IsLocked ? "text-bg-danger" : "text-bg-success")" data-lock-badge="@u.Id">
+                                @(u.IsLocked ? "Đã khóa" : "Hoạt động")
+                            </span>
+                        </td>
+                        <td class="text-end text-nowrap">
+                            @if (!isAdmin)
+                            {
+                                @* Khóa/mở khóa bằng AJAX (admin.js), gửi kèm Anti-forgery token trong header *@
+                                <button type="button" class="btn btn-sm @(u.IsLocked ? "btn-outline-success" : "btn-outline-danger")"
+                                        data-toggle-lock data-user-id="@u.Id" data-locked="@(u.IsLocked ? "true" : "false")"
+                                        data-url="@Url.Action("SetLocked", new { id = u.Id })">
+                                    @(u.IsLocked ? "Mở khóa" : "Khóa")
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<partial name="_Pager" model="Model.Pager" />

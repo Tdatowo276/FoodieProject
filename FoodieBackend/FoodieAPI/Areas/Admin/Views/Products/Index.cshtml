@@ -1,0 +1,35 @@
+@model ProductListViewModel
+@{
+    ViewData["Title"] = "Món ăn";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h1 class="h3 mb-0">Món ăn</h1>
+    <a class="btn btn-primary" asp-action="Create"><i class="bi bi-plus-lg me-1"></i>Thêm món</a>
+</div>
+
+@* Bộ lọc: hoạt động cả khi tắt JavaScript (GET thường); có JS thì admin.js lọc bằng AJAX *@
+<form method="get" asp-action="Index" class="card card-body shadow-sm mb-3" data-ajax-filter="#product-list" role="search">
+    <div class="row g-2">
+        <div class="col-12 col-md-6">
+            <input type="search" name="keyword" value="@Model.Query.Keyword" class="form-control"
+                   placeholder="Tìm theo tên món (không cần dấu)…" aria-label="Từ khóa" maxlength="100" />
+        </div>
+        <div class="col-8 col-md-4">
+            <select name="categoryId" class="form-select" aria-label="Danh mục">
+                <option value="">Tất cả danh mục</option>
+                @foreach (var c in Model.Categories)
+                {
+                    <option value="@c.Id" selected="@(c.Id == Model.Query.CategoryId)">@c.Name@(c.IsActive ? "" : " (đang ẩn)")</option>
+                }
+            </select>
+        </div>
+        <div class="col-4 col-md-2 d-grid">
+            <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-funnel me-1"></i>Lọc</button>
+        </div>
+    </div>
+</form>
+
+<div id="product-list" aria-live="polite">
+    <partial name="_ProductTable" model="Model" />
+</div>

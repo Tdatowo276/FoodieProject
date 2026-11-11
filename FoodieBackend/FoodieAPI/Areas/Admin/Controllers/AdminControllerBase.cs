@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using FoodieAPI.Common;
@@ -34,6 +35,26 @@ namespace FoodieAPI.Areas.Admin.Controllers
             foreach (var (field, messages) in ex.Errors)
                 foreach (var message in messages)
                     ModelState.AddModelError(ToPropertyName(field), message);
+        }
+
+        /// <summary>Request AJAX từ admin.js (trả về partial view thay vì cả trang).</summary>
+        protected bool IsAjax => Request.Headers.XRequestedWith == "XMLHttpRequest";
+
+        /// <summary>
+        /// Ghi nhớ bộ lọc danh sách trong Session. Có tham số trên URL thì lưu lại;
+        /// quay lại trang không có tham số (ví dụ sau khi sửa xong một món) thì khôi phục bộ lọc cũ.
+        /// </summary>
+        protected T RememberQuery<T>(string key, T query) where T : class
+        {
+            var sessionKey = "Filter." + key;
+            if (Request.Query.Count > 0)
+            {
+                HttpContext.Session.SetString(sessionKey, JsonSerializer.Serialize(query));
+                return query;
+            }
+
+            var saved = HttpContext.Session.GetString(sessionKey);
+            return saved is null ? query : JsonSerializer.Deserialize<T>(saved) ?? query;
         }
 
         // "categoryId" (key camelCase của API) -> "CategoryId" (tên thuộc tính ViewModel)
