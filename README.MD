@@ -36,7 +36,6 @@ FoodieProject/
 │           ├── App.jsx             # Component layout khung toàn cục
 │           └── main.jsx            # Điểm khởi chạy ứng dụng React
 │
-├── FoodieDB.sql                    # File script khởi tạo Cơ sở dữ liệu SQL Server
 └── README.md                       # Tài liệu hướng dẫn dự án
 
 
@@ -54,7 +53,7 @@ Yêu cầu hệ thống: Đã cài đặt .NET 9 SDK trở lên.
 
 Cấu hình Cơ sở dữ liệu:
 
-Mở file FoodieDB.sql để tạo database trên SQL Server (hoặc cấu hình lại chuỗi kết nối trong file FoodieBackend/FoodieAPI/appsettings.json).
+Database được Entity Framework Core tự tạo khi chạy ứng dụng (SQLite mặc định, hoặc SQL Server). Không cần chạy script SQL thủ công.
 
 Chạy ứng dụng:
 
