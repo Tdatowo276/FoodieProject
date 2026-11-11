@@ -52,7 +52,11 @@ const storage = {
   },
 };
 const API_ORIGIN = new URL(import.meta.env.VITE_API_URL).origin;
-export const resolveImageUrl = (url) => (url?.startsWith("/uploads/") ? API_ORIGIN + url : url);
+// Ảnh món nằm trên backend: /uploads/... (ảnh upload) hoặc /images/products/... (thư viện ảnh).
+// React chạy ở cổng khác (3000) nên phải ghép thêm địa chỉ backend, nếu không trình duyệt sẽ tìm ảnh ở localhost:3000.
+const BACKEND_IMAGE_PREFIXES = ["/uploads/", "/images/"];
+export const resolveImageUrl = (url) =>
+    url && BACKEND_IMAGE_PREFIXES.some((p) => url.startsWith(p)) ? API_ORIGIN + url : url;
 
 // Trang quản trị (ASP.NET Core MVC) chạy trên backend, đăng nhập riêng bằng cookie
 export const ADMIN_URL = `${API_ORIGIN}/Admin`;
