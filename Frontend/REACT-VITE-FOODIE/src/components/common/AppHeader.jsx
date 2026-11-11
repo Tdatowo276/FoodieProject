@@ -1,20 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Layout, Menu, Badge, Button, Dropdown, Space, Avatar, Typography, Grid } from 'antd';
 import {
-    HomeOutlined, ShopOutlined, ShoppingCartOutlined, UserOutlined, LogoutOutlined, ProfileOutlined, SettingOutlined,
+    HomeOutlined, ShopOutlined, ShoppingCartOutlined, UserOutlined, LogoutOutlined, ProfileOutlined, SettingOutlined, TeamOutlined,
 } from '@ant-design/icons';
 import { PRIMARY, display, ADMIN_URL, resolveImageUrl } from '../../utils/helpers';
 
 const { Text } = Typography;
 const { useBreakpoint } = Grid;
 
+// Logo: đặt file ảnh vào public/logo.png (nên là PNG nền trong suốt hoặc SVG, cắt sát viền)
+const LOGO_SRC = "/logo.png";
+
 const AppHeader = ({ view, setView, cartCount, user, onLogout }) => {
     const screens = useBreakpoint();
     const isMobile = !screens.md;
+    const [logoMissing, setLogoMissing] = useState(false);
 
     const menuItems = [
         { key: "home", icon: isMobile ? <HomeOutlined /> : null, label: isMobile ? null : "TRANG CHỦ", title: "Trang chủ" },
         { key: "products", icon: isMobile ? <ShopOutlined /> : null, label: isMobile ? null : "THỰC ĐƠN", title: "Thực đơn" },
+        { key: "about", icon: isMobile ? <TeamOutlined /> : null, label: isMobile ? null : "VỀ CHÚNG TÔI", title: "Về chúng tôi" },
     ];
 
     return (
@@ -43,16 +48,28 @@ const AppHeader = ({ view, setView, cartCount, user, onLogout }) => {
                     padding: 0, display: "flex", alignItems: "center", gap: 8, letterSpacing: "0.02em",
                 }}
             >
-                <span
-                    aria-hidden="true"
-                    style={{
-                        width: 34, height: 34, borderRadius: 6, background: PRIMARY, color: "#fff",
-                        display: "grid", placeItems: "center", fontSize: 20, lineHeight: 1,
-                    }}
-                >
-                    F
-                </span>
-                {!isMobile && "FOODIE"}
+                {logoMissing ? (
+                    // Chưa có file public/logo.png => dùng logo chữ
+                    <>
+                        <span
+                            aria-hidden="true"
+                            style={{
+                                width: 34, height: 34, borderRadius: 6, background: PRIMARY, color: "#fff",
+                                display: "grid", placeItems: "center", fontSize: 20, lineHeight: 1,
+                            }}
+                        >
+                            F
+                        </span>
+                        {!isMobile && "FOODIE"}
+                    </>
+                ) : (
+                    <img
+                        src={LOGO_SRC}
+                        alt="Foodie"
+                        onError={() => setLogoMissing(true)}
+                        style={{ height: isMobile ? 40 : 52, width: "auto", display: "block" }}
+                    />
+                )}
             </button>
 
             <Menu

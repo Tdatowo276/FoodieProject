@@ -18,6 +18,7 @@ import ProductDetail from './pages/ProductDetail';
 import NotFoundPage from './pages/NotFoundPage';
 import MyOrdersPage from './pages/MyOrdersPage';
 import ProfilePage from './pages/ProfilePage';
+import AboutPage from './pages/AboutPage';
 
 const FoodieApp = () => {
   const { message } = AntApp.useApp();
@@ -97,6 +98,9 @@ const FoodieApp = () => {
           onCheckout={startCheckout}
         />
       );
+      break;
+    case 'about':
+      page = <AboutPage />;
       break;
     case 'profile':
       page = user

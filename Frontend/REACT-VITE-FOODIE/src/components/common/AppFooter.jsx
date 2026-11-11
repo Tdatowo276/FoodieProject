@@ -23,6 +23,7 @@ const AppFooter = ({ setView }) => {
                         <Flex vertical gap={8} align="flex-start">
                             <Button type="link" style={linkStyle} onClick={() => setView("home")}>Trang chủ</Button>
                             <Button type="link" style={linkStyle} onClick={() => setView("products")}>Thực đơn</Button>
+                            <Button type="link" style={linkStyle} onClick={() => setView("about")}>Về chúng tôi</Button>
                             <Button type="link" style={linkStyle} onClick={() => setView("cart")}>Giỏ hàng</Button>
                         </Flex>
                     </Col>
