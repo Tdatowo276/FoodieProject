@@ -68,6 +68,11 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link text-white @Active("Reviews")" asp-controller="Reviews" asp-action="Index">
+                            <i class="bi bi-star me-2"></i>Đánh giá
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link text-white d-flex align-items-center @Active("Feedback")" asp-controller="Feedback" asp-action="Index">
                             <i class="bi bi-chat-left-text me-2"></i>Góp ý
                             @if (unreadFeedback > 0)

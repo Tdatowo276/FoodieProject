@@ -1,5 +1,6 @@
 import React from 'react';
 import { Card, Flex, Typography, Button } from 'antd';
+import { StarFilled } from '@ant-design/icons';
 import ProductImage from './ProductImage';
 import { formatVND } from '../../utils/helpers';
 
@@ -29,6 +30,11 @@ const ProductCard = ({ product, onAdd, onOpen }) => (
         >
             {product.name}
         </Text>
+        {product.reviewCount > 0 && (
+            <Text type="secondary" style={{ fontSize: 13, marginTop: -8, marginBottom: 10 }}>
+                <StarFilled style={{ color: '#FADB14' }} /> {product.rating.toFixed(1)} ({product.reviewCount})
+            </Text>
+        )}
         <Flex justify="space-between" align="center" gap={8} wrap>
             <Text strong style={{ fontSize: 16 }}>{formatVND(product.price)}</Text>
             <Button danger shape="round" onClick={() => onAdd(product)} aria-label={`Đặt ${product.name}`}>

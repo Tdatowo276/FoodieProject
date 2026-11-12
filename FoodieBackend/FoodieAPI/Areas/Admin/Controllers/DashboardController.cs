@@ -14,6 +14,7 @@ namespace FoodieAPI.Areas.Admin.Controllers
             return View(new DashboardViewModel
             {
                 Stats = await stats.GetDashboardAsync(),
+                TopProducts = await stats.GetTopProductsAsync(days: 30, take: 5),
                 PendingOrders = pending.Items,
                 PendingTotal = pending.Total
             });

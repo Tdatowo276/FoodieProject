@@ -8,11 +8,12 @@ namespace FoodieAPI.DTOs
         int CategoryId,
         string Category,        // tên danh mục, để hiển thị
         long Price,
-        double Rating,
+        double Rating,          // điểm trung bình đánh giá thật (0 = chưa có đánh giá)
         string? Description,
         string? ImageUrl,
         bool IsFeatured,
-        DateTime CreatedAt
+        DateTime CreatedAt,
+        int ReviewCount = 0
     );
 
     public record ProductRequest(

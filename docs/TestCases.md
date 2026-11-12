@@ -5,8 +5,8 @@
 | Hệ thống | Foodie: đặt đồ ăn trực tuyến (React + ASP.NET Core MVC + Web API + SQL Server) |
 | Phạm vi | Toàn bộ chức năng khách hàng, quản trị viên, Web API, bảo mật |
 | Loại kiểm thử | Tự động (xUnit: unit + integration) và thủ công (giao diện, thiết bị) |
-| Số test case | **113** (88 tự động + 25 thủ công); 88 test tự động gồm **130 lượt chạy** do có test chạy nhiều bộ dữ liệu |
-| Kết quả tự động gần nhất | **130 / 130 đạt** (ngày 12/11/2026, chạy 3 lần liên tiếp đều đạt) |
+| Số test case | **123** (96 tự động + 27 thủ công); 96 test tự động gồm **138 lượt chạy** do có test chạy nhiều bộ dữ liệu |
+| Kết quả tự động gần nhất | **138 / 138 đạt** (ngày 12/11/2026) |
 
 ---
 
@@ -185,6 +185,19 @@
 | TC-RL-01 | Rate limit đăng nhập | 11 lần đăng nhập sai trong 1 phút | 10 lần đầu 401, lần 11 **429** | `RateLimitTests.Login_11thAttemptWithinAMinute_Returns429` | Đạt |
 | TC-RL-02 | Rate limit góp ý | 6 góp ý trong 10 phút | 5 lần đầu 201, lần 6 **429** | `RateLimitTests.Feedback_6thWithin10Minutes_Returns429` | Đạt |
 
+### 2.13. Đánh giá món và món bán chạy
+
+| Mã TC | Chức năng | Các bước / dữ liệu | Kết quả mong đợi | Test tự động | Kết quả |
+|---|---|---|---|---|---|
+| TC-REV-01 | Chỉ người đã mua được đánh giá | Chưa mua; đơn đang giao; đơn đã hủy | Đều 403; `canReview = false` | `ReviewTests.CannotReview_WithoutPurchase_OrBeforeOrderCompleted` | Đạt |
+| TC-REV-02 | Đánh giá + điểm trung bình | 2 khách có đơn hoàn thành đánh giá 5★ và 2★, khách thứ 2 sửa thành 4★ | Mỗi khách 1 đánh giá (gửi lại = sửa); trung bình 4.5, 2 lượt, phân bố đúng; điểm trên món được cập nhật | `ReviewTests.AfterCompletedOrder_CanReview_OncePerProduct_AndAverageIsUpdated` | Đạt |
+| TC-REV-03 | Đánh giá sai dữ liệu | 6 sao, nhận xét 501 ký tự | 400, lỗi `rating`, `comment` | `ReviewTests.InvalidRating_Returns400` | Đạt |
+| TC-REV-04 | Xóa đánh giá | Admin xóa đánh giá không phù hợp; khách tự xóa đánh giá của mình | 204; điểm trung bình tính lại; hết đánh giá thì về 0 | `ReviewTests.OwnerAndAdmin_CanDeleteReview_RatingIsRecalculated` | Đạt |
+| TC-REV-05 | Quyền quản trị đánh giá | Khách hàng gọi API quản trị đánh giá | 403 | `ReviewTests.Customer_CannotUseAdminReviewApi` | Đạt |
+| TC-REV-06 | Đánh giá của món đang ẩn | Xem đánh giá của món thuộc danh mục đã ẩn | 404 | `ReviewTests.ReviewsOfHiddenProduct_AreNotPublic` | Đạt |
+| TC-TOP-01 | Món bán chạy | 99 phần (đơn hoàn thành), 50 phần (đơn hủy), 30 phần (đang giao) | Chỉ tính 99 phần, doanh thu 990.000đ, đứng đầu cả trang Admin lẫn trang chủ | `ReviewTests.TopProducts_CountOnlyCompletedOrders` | Đạt |
+| TC-TOP-02 | Trang Admin | Mở Tổng quan; mở trang Đánh giá có nhận xét chứa `<script>` | Có bảng "Món bán chạy" chứa món; nhận xét được mã hóa (chống XSS) | `ReviewTests.AdminMvc_DashboardShowsTopProducts_AndReviewsPageEncodesComments` | Đạt |
+
 ---
 
 ## 3. Test case thủ công
@@ -218,6 +231,8 @@ Những phần cần mắt người hoặc thiết bị thật (giao diện, hi�
 | MT-23 | Swagger | Mở `/swagger` → login lấy token → Authorize → gọi `GET /api/admin/stats` | Trả 200; API có ổ khóa khi chưa Authorize thì trả 401 | | | |
 | MT-24 | Responsive trang khách | DevTools → iPhone SE (375px): trang chủ, thực đơn, giỏ, thanh toán, hồ sơ | Không tràn ngang; nút bấm được; menu thu gọn | | | |
 | MT-25 | Responsive trang Admin | DevTools → 375px: Tổng quan, Món ăn, Đơn hàng | Sidebar thành nút menu; bảng cuộn ngang trong khung, không tràn trang | | | |
+| MT-26 | Viết đánh giá (giao diện) | Đơn của tôi → đơn đã hoàn thành → "Đánh giá" → chọn sao, viết nhận xét → Gửi; sau đó Sửa và Xóa | Đánh giá hiện trong danh sách; điểm trung bình và số lượt trên trang món / thẻ món cập nhật | | | |
+| MT-27 | Món bán chạy | Hoàn thành vài đơn ở Admin → mở trang chủ và Admin → Tổng quan | Trang chủ có tab "Bán chạy"; Tổng quan có bảng Top 5 với thanh tỉ lệ | | | |
 
 ---
 
@@ -225,10 +240,10 @@ Những phần cần mắt người hoặc thiết bị thật (giao diện, hi�
 
 | Yêu cầu (đề bài) | Test case |
 |---|---|
-| 3.1 Hai vai trò, phân quyền phía server | TC-AUTH-02, TC-AZ-01 → 05, TC-MVC-01, TC-MVC-05, TC-UP-07 |
-| 3.3 EF Core, quan hệ, LINQ; migrations | TC-SYS-01, TC-SYS-02, TC-PRD-05, TC-PRD-07, TC-ORD-08, TC-ORD-10 |
+| 3.1 Hai vai trò, phân quyền phía server | TC-AUTH-02, TC-AZ-01 → 05, TC-MVC-01, TC-MVC-05, TC-UP-07, TC-REV-01, TC-REV-05 |
+| 3.3 EF Core, quan hệ, LINQ; migrations | TC-SYS-01, TC-SYS-02, TC-PRD-05, TC-PRD-07, TC-ORD-08, TC-ORD-10, TC-REV-02, TC-TOP-01 |
 | 3.3 Phân trang, lọc, AJAX | TC-BR-09, TC-PRD-01, TC-PRD-02, TC-FB-04, TC-MVC-09, MT-17 |
-| 3.3 Thêm / Sửa / Xóa | TC-PRD-06 → 11, TC-FB-04, TC-PRF-02 → 05, MT-19, MT-20 |
+| 3.3 Thêm / Sửa / Xóa | TC-PRD-06 → 11, TC-FB-04, TC-PRF-02 → 05, TC-REV-02, TC-REV-04, MT-19, MT-20, MT-26 |
 | 3.3 Quản lý trạng thái (Session, Cookie, TempData, token) | TC-AUTH-08, TC-MVC-04, TC-MVC-07, MT-18, MT-20 |
 | 3.3 Kiểm tra dữ liệu + Data Annotations | TC-VAL-01 → 08, TC-AUTH-04, TC-PRD-09, TC-ORD-04, TC-FB-03, MT-22 |
 | 3.3 Web API RESTful + Swagger | Toàn bộ nhóm 2.4 → 2.10 (gọi qua HTTP), MT-23 |
@@ -243,7 +258,7 @@ Những phần cần mắt người hoặc thiết bị thật (giao diện, hi�
 | 3.5 Upload an toàn (định dạng, kích thước) | TC-UP-01 → 06, TC-BR-10 → 13 |
 | 3.5 Không viết cứng bí mật | TC-SYS-01 (test chạy bằng cấu hình riêng, không đọc User Secrets) |
 | 3.5 Không tin vai trò / quyền từ client | TC-AUTH-02, TC-ORD-08, TC-AZ-04 |
-| 3.5 Lỗ hổng phổ biến khác | TC-MVC-06 (Open Redirect), TC-MVC-08 (XSS), TC-MVC-11 (header), TC-RL-01, TC-RL-02 (dò mật khẩu, spam), TC-AUTH-07 (dò email), TC-UP-01 (path traversal) |
+| 3.5 Lỗ hổng phổ biến khác | TC-MVC-06 (Open Redirect), TC-MVC-08 + TC-TOP-02 (XSS), TC-MVC-11 (header), TC-RL-01, TC-RL-02 (dò mật khẩu, spam), TC-AUTH-07 (dò email), TC-UP-01 (path traversal) |
 
 ---
 
@@ -252,4 +267,5 @@ Những phần cần mắt người hoặc thiết bị thật (giao diện, hi�
 | Ngày | Loại | Kết quả | Ghi chú |
 |---|---|---|---|
 | 12/11/2026 | Tự động (3 lần liên tiếp) | 130 / 130 đạt | CSDL tạm được tự xóa sau mỗi lần chạy |
+| 12/11/2026 | Tự động (thêm đánh giá món + bán chạy) | 138 / 138 đạt | |
 | | Thủ công | | Nhóm điền sau khi kiểm thử mục 3 |

@@ -165,5 +165,20 @@ namespace FoodieAPI.Areas.Admin.Models
         public required StatsDto Stats { get; init; }
         public required IReadOnlyList<AdminOrderDto> PendingOrders { get; init; }
         public int PendingTotal { get; init; }
+        public IReadOnlyList<TopProductDto> TopProducts { get; init; } = [];
+    }
+
+    // ===================== Đánh giá =====================
+
+    public class ReviewListViewModel
+    {
+        public ReviewQuery Query { get; init; } = new();
+        public Paged<ReviewDto> Result { get; init; } = new([], 0, 1, 10);
+
+        public PagerModel Pager => new(Result.Page, Result.PageSize, Result.Total, new Dictionary<string, string?>
+        {
+            ["keyword"] = Query.Keyword,
+            ["rating"] = Query.Rating?.ToString()
+        });
     }
 }

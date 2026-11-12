@@ -51,6 +51,13 @@ const productService = {
         }
         return axiosClient.get("/products/featured");
     },
+
+    // GET /api/products/best-sellers  =>  [{ productId, name, imageUrl, quantity, revenue }]
+    // Món bán chạy 30 ngày qua (chỉ tính đơn đã hoàn thành)
+    async getBestSellers(take = 8) {
+        if (USE_MOCK) return [];
+        return axiosClient.get("/products/best-sellers", { params: { take } });
+    },
 };
 
 const categoryService = {

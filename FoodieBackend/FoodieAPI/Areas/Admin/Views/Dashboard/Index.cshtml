@@ -34,6 +34,37 @@
 </div>
 <p class="small text-secondary">Doanh thu chỉ tính các đơn đã hoàn thành; số đơn không tính đơn đã hủy.</p>
 
+@* Món bán chạy 30 ngày qua: thanh ngang tỉ lệ theo số phần bán được *@
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-body">Món bán chạy <span class="text-secondary small">· 30 ngày qua, đơn đã hoàn thành</span></div>
+    @if (Model.TopProducts.Count == 0)
+    {
+        <div class="card-body text-secondary">Chưa có đơn hoàn thành nào trong 30 ngày qua.</div>
+    }
+    else
+    {
+        var maxQty = Model.TopProducts.Max(t => t.Quantity);
+        <ol class="list-group list-group-flush list-group-numbered">
+            @foreach (var t in Model.TopProducts)
+            {
+                var percent = (int)Math.Round(t.Quantity * 100.0 / maxQty);
+                <li class="list-group-item d-flex align-items-center gap-3">
+                    <div class="flex-grow-1 min-w-0">
+                        <div class="d-flex justify-content-between gap-2">
+                            <span class="fw-medium text-truncate">@t.Name</span>
+                            <span class="text-nowrap small">@t.Quantity phần · @AdminFormat.Money(t.Revenue)</span>
+                        </div>
+                        <div class="progress mt-1" role="progressbar" aria-label="@t.Name: @t.Quantity phần"
+                             aria-valuenow="@t.Quantity" aria-valuemin="0" aria-valuemax="@maxQty" style="height: 6px">
+                            <div class="progress-bar bg-danger" style="width: @percent%"></div>
+                        </div>
+                    </div>
+                </li>
+            }
+        </ol>
+    }
+</div>
+
 <div class="card shadow-sm">
     <div class="card-header bg-body d-flex justify-content-between align-items-center">
         <span>Đơn chờ xác nhận <span class="badge text-bg-warning">@Model.PendingTotal</span></span>

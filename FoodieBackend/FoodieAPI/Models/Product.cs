@@ -22,8 +22,14 @@ namespace FoodieAPI.Models
         [StringLength(255)]
         public string? ImageUrl { get; set; }
 
+        // Điểm trung bình + số lượt đánh giá, tính lại mỗi khi có đánh giá thêm / sửa / xóa
+        // (lưu sẵn để danh sách món không phải tính AVG trên bảng Reviews mỗi lần tải)
         [Range(0, 5)]
         public double Rating { get; set; }
+
+        public int ReviewCount { get; set; }
+
+        public List<Review> Reviews { get; set; } = [];
 
         public bool IsFeatured { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -1,6 +1,6 @@
 # FoodieAPI.Tests: kiểm thử tự động
 
-Bộ kiểm thử xUnit cho backend Foodie: **130 test**, chạy khoảng 20 giây.
+Bộ kiểm thử xUnit cho backend Foodie: **138 test**, chạy khoảng 20 giây.
 
 ## Chạy test
 
@@ -50,4 +50,5 @@ dotnet test FoodieAPI.Tests -c Release --logger "console;verbosity=normal"
 | `Integration/UploadTests.cs` | Upload an toàn: đuôi file, nội dung giả, quá 2MB, tên do server sinh, xóa ảnh cũ |
 | `Integration/OrderTests.cs` | Đặt hàng (giá lấy từ CSDL, phí ship), đơn của tôi, chống xem đơn người khác, luồng trạng thái, doanh thu |
 | `Integration/ProfileAndFeedbackTests.cs` | Hồ sơ (tên, mật khẩu, ảnh đại diện, địa chỉ), góp ý |
+| `Integration/ReviewTests.cs` | Đánh giá món (chỉ người đã mua, điểm trung bình, sửa / xóa, kiểm duyệt), món bán chạy |
 | `Integration/AdminMvcTests.cs` | Khu Admin MVC: CSRF, cookie HttpOnly, open redirect, XSS, trang lỗi, header bảo mật, AJAX; rate limit |

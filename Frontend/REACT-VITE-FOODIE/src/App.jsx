@@ -26,7 +26,7 @@ const FoodieApp = () => {
   const { message } = AntApp.useApp();
   const [selectedProductId, setSelectedProductId] = useState(null);
   const [cart, setCart] = useState(() => storage.get(CART_KEY, []));
-  const [detail, setDetail] = useState(null);
+  const [detail, setDetail] = useState(null);       // món đang xem nhanh (hộp ProductModal)
   const [checkout, setCheckout] = useState(null);
   const [order, setOrder] = useState(null);
   const [openOrderCode, setOpenOrderCode] = useState(null);   // mở sẵn chi tiết đơn khi vào "Đơn của tôi"
@@ -60,6 +60,13 @@ const FoodieApp = () => {
   const setQty = (id, qty) => setCart((prev) => prev.map((i) => (i.id === id ? { ...i, qty } : i)));
   const removeItem = (id) => setCart((prev) => prev.filter((i) => i.id !== id));
 
+  /* ---- Trang chi tiết món (có phần đánh giá) ---- */
+  const openProduct = (productId) => {
+    setDetail(null);
+    setSelectedProductId(productId);
+    navigate('product-detail');
+  };
+
   /* ---- Thanh toán ---- */
   const startCheckout = (summary) => {
     if (!user) {
@@ -84,9 +91,11 @@ const FoodieApp = () => {
     case 'product-detail':
       page = (
         <ProductDetail
+          key={selectedProductId}
           productId={selectedProductId}
           onNavigate={navigate}
           onAddToCart={addToCart}
+          user={user}
         />
       );
       break;
@@ -112,7 +121,7 @@ const FoodieApp = () => {
     case 'orders':
       // Trang cần đăng nhập; phiên hết hạn thì useAuthView tự chuyển về trang đăng nhập
       page = user
-        ? <MyOrdersPage key={openOrderCode ?? 'list'} onNavigate={navigate} openCode={openOrderCode} />
+        ? <MyOrdersPage key={openOrderCode ?? 'list'} onNavigate={navigate} openCode={openOrderCode} onOpenProduct={openProduct} />
         : <LoginPage setView={navigate} onAuthSuccess={handleAuthSuccess} notice="Hãy đăng nhập để xem đơn hàng của bạn." />;
       break;
     case 'login':
@@ -156,7 +165,7 @@ const FoodieApp = () => {
       <Layout.Content style={{ paddingBottom: 40 }}>{page}</Layout.Content>
       <AppFooter setView={navigate} />
 
-      <ProductModal product={detail} onClose={() => setDetail(null)} onAdd={addToCart} />
+      <ProductModal product={detail} onClose={() => setDetail(null)} onAdd={addToCart} onViewDetail={openProduct} />
 
       <CheckoutModal
         open={!!checkout}

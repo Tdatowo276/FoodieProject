@@ -22,6 +22,7 @@ import { PRIMARY, display, formatVND } from "../utils/helpers";
 import { productService } from "../services/product.service";
 import Container from "../components/Container";
 import ProductImage from "../components/products/ProductImage";
+import ReviewsSection from "../components/products/ReviewsSection";
 
 const { Title, Text, Paragraph, Link } = Typography;
 
@@ -43,12 +44,14 @@ const loadProduct = async (id) => {
  * - productId:    id món cần xem
  * - onNavigate:   (key) => void, nhận "home" | "products" | "cart" ...
  * - onAddToCart:  (product, qty) => void
+ * - user:         người đang đăng nhập (để viết đánh giá), null nếu chưa đăng nhập
  */
-export default function ProductDetail({ productId, onNavigate, onAddToCart }) {
+export default function ProductDetail({ productId, onNavigate, onAddToCart, user }) {
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [qty, setQty] = useState(1);
+    const [reloadKey, setReloadKey] = useState(0);   // tăng lên khi có đánh giá mới => tải lại điểm trung bình
 
     useEffect(() => {
         let ignore = false;
@@ -66,6 +69,12 @@ export default function ProductDetail({ productId, onNavigate, onAddToCart }) {
             ignore = true;
         };
     }, [productId]);
+
+    // Đánh giá thay đổi: chỉ tải lại thông tin món (điểm trung bình), không hiện skeleton
+    useEffect(() => {
+        if (reloadKey === 0) return;
+        loadProduct(productId).then((data) => data && setProduct(data)).catch(() => {});
+    }, [reloadKey, productId]);
 
     const breadcrumbItems = [
         {
@@ -124,7 +133,11 @@ export default function ProductDetail({ productId, onNavigate, onAddToCart }) {
 
                         <Space size={8} align="center">
                             <Rate disabled allowHalf value={rating} />
-                            <Text type="secondary">{rating.toFixed(1)} / 5</Text>
+                            <Text type="secondary">
+                                {product.reviewCount > 0
+                                    ? `${rating.toFixed(1)} / 5 · ${product.reviewCount} lượt đánh giá`
+                                    : "Chưa có đánh giá"}
+                            </Text>
                         </Space>
 
                         <Title level={2} style={{ ...display, color: PRIMARY, margin: "16px 0 8px" }}>
@@ -178,6 +191,14 @@ export default function ProductDetail({ productId, onNavigate, onAddToCart }) {
             <div style={{ padding: "28px 0 40px" }}>
                 <Breadcrumb items={breadcrumbItems} style={{ marginBottom: 20 }} />
                 {renderBody()}
+                {product && (
+                    <ReviewsSection
+                        productId={product.id}
+                        user={user}
+                        onNavigate={onNavigate}
+                        onRatingChanged={() => setReloadKey((k) => k + 1)}
+                    />
+                )}
             </div>
         </Container>
     );

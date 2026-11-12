@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
     Typography, List, Tag, Alert, Button, Empty, Modal, Spin, Steps, Descriptions, Table, Flex, Pagination,
 } from 'antd';
-import { ShoppingOutlined, ReloadOutlined } from '@ant-design/icons';
+import { ShoppingOutlined, ReloadOutlined, StarOutlined } from '@ant-design/icons';
 import Container from '../components/Container';
 import { orderService } from '../services/auth.service';
 import { ORDER_STATUS, display, formatVND, formatDateTime } from '../utils/helpers';
@@ -17,7 +17,7 @@ const StatusTag = ({ status }) => {
 };
 
 /** Chi tiết một đơn: tiến độ, món, tiền, thông tin giao hàng. */
-const OrderDetailModal = ({ code, onClose }) => {
+const OrderDetailModal = ({ code, onClose, onOpenProduct }) => {
     const [order, setOrder] = useState(null);
     const [error, setError] = useState('');
 
@@ -64,6 +64,20 @@ const OrderDetailModal = ({ code, onClose }) => {
                             { title: 'Món', dataIndex: 'productName' },
                             { title: 'SL', dataIndex: 'quantity', align: 'center', width: 56 },
                             { title: 'Thành tiền', dataIndex: 'lineTotal', align: 'right', render: formatVND },
+                            // Đơn đã hoàn thành: mời đánh giá từng món (món đã ngừng bán thì không có nút)
+                            ...(order.status === 'completed' && onOpenProduct
+                                ? [{
+                                    title: '',
+                                    key: 'review',
+                                    align: 'right',
+                                    width: 96,
+                                    render: (_, item) => item.productId && (
+                                        <Button size="small" icon={<StarOutlined />} onClick={() => { onClose(); onOpenProduct(item.productId); }}>
+                                            Đánh giá
+                                        </Button>
+                                    ),
+                                }]
+                                : []),
                         ]}
                         summary={() => (
                             <>
@@ -98,7 +112,7 @@ const OrderDetailModal = ({ code, onClose }) => {
 };
 
 /** Trang "Đơn của tôi": danh sách đơn của tài khoản đang đăng nhập (GET /api/orders/me). */
-const MyOrdersPage = ({ onNavigate, openCode }) => {
+const MyOrdersPage = ({ onNavigate, openCode, onOpenProduct }) => {
     const [page, setPage] = useState(1);
     const [data, setData] = useState({ items: [], total: 0 });
     const [loading, setLoading] = useState(true);
@@ -168,7 +182,7 @@ const MyOrdersPage = ({ onNavigate, openCode }) => {
                 </Flex>
             )}
 
-            <OrderDetailModal code={selected} onClose={() => setSelected(null)} />
+            <OrderDetailModal code={selected} onClose={() => setSelected(null)} onOpenProduct={onOpenProduct} />
         </Container>
     );
 };

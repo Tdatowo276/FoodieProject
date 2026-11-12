@@ -10,6 +10,7 @@ import { PRIMARY, PRIMARY_DARK, display } from '../utils/helpers';
 
 const { Title, Text } = Typography;
 const FEATURED_KEY = 'noi-bat';
+const BEST_SELLER_KEY = 'ban-chay';
 
 /**
  * Trang chủ: banner → ô tìm món → thanh tab danh mục → mỗi danh mục một khu.
@@ -20,6 +21,7 @@ const HomePage = ({ setView, onAdd, onOpen, onSearch, user }) => {
     const [featured, setFeatured] = useState([]);
     const [categories, setCategories] = useState([]);
     const [products, setProducts] = useState([]);
+    const [bestSellerIds, setBestSellerIds] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [active, setActive] = useState(FEATURED_KEY);
@@ -27,12 +29,19 @@ const HomePage = ({ setView, onAdd, onOpen, onSearch, user }) => {
 
     useEffect(() => {
         let ignore = false;
-        Promise.all([productService.getFeatured(), categoryService.getAll(), productService.getAll()])
-            .then(([f, c, p]) => {
+        Promise.all([
+            productService.getFeatured(),
+            categoryService.getAll(),
+            productService.getAll(),
+            // Món bán chạy không bắt buộc: lỗi thì vẫn hiện trang chủ bình thường
+            productService.getBestSellers(8).catch(() => []),
+        ])
+            .then(([f, c, p, best]) => {
                 if (ignore) return;
                 setFeatured(f);
                 setCategories(c);
                 setProducts(p);
+                setBestSellerIds(best.map((b) => b.productId));
             })
             .catch((e) => !ignore && setError(e.message))
             .finally(() => !ignore && setLoading(false));
@@ -43,12 +52,15 @@ const HomePage = ({ setView, onAdd, onOpen, onSearch, user }) => {
     const sections = useMemo(() => {
         const list = [];
         if (featured.length > 0) list.push({ key: FEATURED_KEY, label: 'Nổi bật', items: featured });
+        // Bán chạy 30 ngày qua (theo đơn đã hoàn thành), giữ đúng thứ tự xếp hạng
+        const bestSellers = bestSellerIds.map((id) => products.find((p) => p.id === id)).filter(Boolean);
+        if (bestSellers.length > 0) list.push({ key: BEST_SELLER_KEY, label: 'Bán chạy', items: bestSellers });
         for (const c of categories) {
             const items = products.filter((p) => p.categoryId === c.id);
             if (items.length > 0) list.push({ key: `danh-muc-${c.id}`, label: c.name, items });
         }
         return list;
-    }, [featured, categories, products]);
+    }, [featured, categories, products, bestSellerIds]);
 
     const tabs = useMemo(() => sections.map(({ key, label }) => ({ key, label })), [sections]);
 

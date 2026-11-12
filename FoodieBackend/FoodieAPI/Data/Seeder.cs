@@ -59,23 +59,24 @@ namespace FoodieAPI.Data
                 var categories = await db.Categories.ToDictionaryAsync(c => c.Name);
 
                 // Image: tên file trong wwwroot/images/products (thiếu file thì món chưa có ảnh, không lỗi)
-                var seed = new (string Name, string Category, long Price, double Rating, bool Featured, string Image, string Description)[]
+                // Điểm sao không nhập tay: tính từ đánh giá thật của khách (bảng Reviews)
+                var seed = new (string Name, string Category, long Price, bool Featured, string Image, string Description)[]
                 {
-                    ("Mỳ ý sốt cay vừa", "Món chính", 49000, 4.7, true, "my-y-bo-bam.png", "Chưa có mô tả cho sản phẩm này"),
-                    ("Salad rau củ", "Đồ ăn nhanh", 25000, 4.9, false, "salad-rau-cu.png", "Chưa có mô tả cho sản phẩm này."),
-                    ("Viên phô mai", "Đồ ăn nhanh", 32000, 4.5, false, "vien-pho-mai.png", "Viên Phô Mai Hoàng Kim: 3 viên"),
-                    ("Gà Chiên Giòn", "Món chính", 38000, 4.9, true, "ga-ran-thuong.png", "Miếng gà chiên giòn (miếng ngẫu nhiên)"),
-                    ("Burger bò", "Món chính", 57000, 4.8, true, "burger-bo.png", "01 Burger bò"),
-                    ("Burger gà", "Món chính", 50000, 4.6, true, "burger-ga.png", "01 Burger gà cay / không cay"),
-                    ("Gà sốt mật ong", "Món chính", 195000, 4.7, true, "ga-ran-sot-mat-ong.png", "01 Gà sốt mật ong nguyên con - 1/2 Gà sốt mật ong nguyên con"),
-                    ("Trà Chanh Lipton", "Đồ uống", 29000, 4.8, false, "tra-lipton.png", "Trà chanh Lipton siu ngon."),
-                    ("Pepsi", "Đồ uống", 15000, 4.9, false, "pepsi.png", "Đồ uống nhanh."),
-                    ("Mirinda", "Đồ uống", 15000, 4.7, false, "mirinda.png", "Đồ uống nhanh."),
-                    ("Kem Vani", "Tráng miệng", 10000, 4.5, false, "kem-vani.png", "Kem tươi mát lạnh vị Vani siêu ngon."),
-                    ("Gà giòn nguyên con", "Món chính", 195000, 4.8, true, "ga-ran-nua-con.png", "01 Gà giòn nguyên con - 1/2 Gà giòn nguyên con"),
-                    ("Combo Burger Gà Giòn", "Combo Siêu Ưu Đãi", 59000, 0, false, "combo-burger-ga-them-pepsi.png", "1 Burger gà giòn + 1 Miếng gà chiên giòn + 1 Pepsi"),
-                    ("Combo Burger", "Combo Siêu Ưu Đãi", 69000, 0, true, "combo-2-burger-them-pepsi.png", "Combo bao gồm: - 2 Burger gà giòn  - 1 Pepsi"),
-                    ("Cơm trắng", "Đồ ăn kèm", 5000, 0, false, "com-trang.png", "Cơm trắng ngon."),
+                    ("Mỳ ý sốt cay vừa", "Món chính", 49000, true, "my-y-bo-bam.png", "Chưa có mô tả cho sản phẩm này"),
+                    ("Salad rau củ", "Đồ ăn nhanh", 25000, false, "salad-rau-cu.png", "Chưa có mô tả cho sản phẩm này."),
+                    ("Viên phô mai", "Đồ ăn nhanh", 32000, false, "vien-pho-mai.png", "Viên Phô Mai Hoàng Kim: 3 viên"),
+                    ("Gà Chiên Giòn", "Món chính", 38000, true, "ga-ran-thuong.png", "Miếng gà chiên giòn (miếng ngẫu nhiên)"),
+                    ("Burger bò", "Món chính", 57000, true, "burger-bo.png", "01 Burger bò"),
+                    ("Burger gà", "Món chính", 50000, true, "burger-ga.png", "01 Burger gà cay / không cay"),
+                    ("Gà sốt mật ong", "Món chính", 195000, true, "ga-ran-sot-mat-ong.png", "01 Gà sốt mật ong nguyên con - 1/2 Gà sốt mật ong nguyên con"),
+                    ("Trà Chanh Lipton", "Đồ uống", 29000, false, "tra-lipton.png", "Trà chanh Lipton siu ngon."),
+                    ("Pepsi", "Đồ uống", 15000, false, "pepsi.png", "Đồ uống nhanh."),
+                    ("Mirinda", "Đồ uống", 15000, false, "mirinda.png", "Đồ uống nhanh."),
+                    ("Kem Vani", "Tráng miệng", 10000, false, "kem-vani.png", "Kem tươi mát lạnh vị Vani siêu ngon."),
+                    ("Gà giòn nguyên con", "Món chính", 195000, true, "ga-ran-nua-con.png", "01 Gà giòn nguyên con - 1/2 Gà giòn nguyên con"),
+                    ("Combo Burger Gà Giòn", "Combo Siêu Ưu Đãi", 59000, false, "combo-burger-ga-them-pepsi.png", "1 Burger gà giòn + 1 Miếng gà chiên giòn + 1 Pepsi"),
+                    ("Combo Burger", "Combo Siêu Ưu Đãi", 69000, true, "combo-2-burger-them-pepsi.png", "Combo bao gồm: - 2 Burger gà giòn  - 1 Pepsi"),
+                    ("Cơm trắng", "Đồ ăn kèm", 5000, false, "com-trang.png", "Cơm trắng ngon."),
                 };
 
                 var library = libraryImages.ToHashSet(StringComparer.Ordinal);
@@ -88,7 +89,6 @@ namespace FoodieAPI.Data
                     {
                         Category = categories[s.Category],
                         Price = s.Price,
-                        Rating = s.Rating,
                         IsFeatured = s.Featured,
                         Description = s.Description,
                         // Giữ thứ tự hiển thị như danh sách trên (món ở cuối danh sách = mới nhất)

@@ -14,6 +14,7 @@ namespace FoodieAPI.Data
         public DbSet<Order> Orders => Set<Order>();
         public DbSet<OrderItem> OrderItems => Set<OrderItem>();
         public DbSet<Feedback> Feedbacks => Set<Feedback>();
+        public DbSet<Review> Reviews => Set<Review>();
 
         protected override void ConfigureConventions(ModelConfigurationBuilder builder)
         {
@@ -46,6 +47,17 @@ namespace FoodieAPI.Data
                 // Lịch sử đơn hàng phải được giữ lại: không cho xóa user khi user đã có đơn
                 e.HasOne(o => o.User).WithMany(u => u.Orders)
                     .HasForeignKey(o => o.UserId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Đánh giá: mỗi khách 1 đánh giá / món (unique). Xóa món hoặc tài khoản thì xóa luôn đánh giá.
+            model.Entity<Review>(e =>
+            {
+                e.HasIndex(r => new { r.ProductId, r.UserId }).IsUnique();
+                e.HasIndex(r => r.CreatedAt);
+                e.HasOne(r => r.Product).WithMany(p => p.Reviews)
+                    .HasForeignKey(r => r.ProductId).OnDelete(DeleteBehavior.Cascade);
+                e.HasOne(r => r.User).WithMany()
+                    .HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.Cascade);
             });
 
             // Góp ý vẫn giữ lại khi tài khoản bị xóa (UserId => NULL)

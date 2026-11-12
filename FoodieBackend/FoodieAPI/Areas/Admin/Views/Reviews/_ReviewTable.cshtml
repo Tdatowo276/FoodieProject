@@ -1,0 +1,53 @@
+@model ReviewListViewModel
+
+@if (Model.Result.Items.Count == 0)
+{
+    <div class="card card-body text-center text-secondary shadow-sm">Chưa có đánh giá nào phù hợp.</div>
+    return;
+}
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Món</th>
+                    <th>Đánh giá</th>
+                    <th class="d-none d-md-table-cell">Người đánh giá</th>
+                    <th class="d-none d-lg-table-cell">Thời gian</th>
+                    <th class="text-end">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model.Result.Items)
+                {
+                    <tr>
+                        <td class="fw-medium">@r.ProductName</td>
+                        <td style="min-width: 220px">
+                            <div class="text-warning text-nowrap" aria-label="@r.Rating trên 5 sao">
+                                @for (var i = 1; i <= 5; i++) { <i class="bi @(i <= r.Rating ? "bi-star-fill" : "bi-star")"></i> }
+                            </div>
+                            @* Nội dung do khách nhập: Razor tự mã hóa HTML (chống XSS) *@
+                            @if (!string.IsNullOrEmpty(r.Comment))
+                            {
+                                <div class="small" style="white-space: pre-line">@r.Comment</div>
+                            }
+                            <div class="small text-secondary d-md-none">@r.UserName</div>
+                        </td>
+                        <td class="d-none d-md-table-cell">@r.UserName</td>
+                        <td class="d-none d-lg-table-cell text-nowrap">@AdminFormat.VnTime(r.UpdatedAt ?? r.CreatedAt)</td>
+                        <td class="text-end">
+                            <form asp-action="Delete" asp-route-id="@r.Id" method="post" data-confirm="Xóa đánh giá của @r.UserName cho món @r.ProductName?">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa" aria-label="Xóa đánh giá">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<partial name="_Pager" model="Model.Pager" />
