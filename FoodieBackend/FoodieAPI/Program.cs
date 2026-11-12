@@ -76,6 +76,10 @@ builder.Services.AddCors(options =>
 builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = Limits.MaxRequestBytes);
 builder.Services.Configure<FormOptions>(options => options.MultipartBodyLengthLimit = Limits.MaxRequestBytes);
 
+// Giới hạn số lần gọi; đọc từ cấu hình để bộ kiểm thử tự động có thể nới ra (mặc định là mức an toàn)
+var authPermitLimit = config.GetValue("RateLimit:AuthPerMinute", 10);
+var feedbackPermitLimit = config.GetValue("RateLimit:FeedbackPer10Minutes", 5);
+
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -85,7 +89,7 @@ builder.Services.AddRateLimiter(options =>
             httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 10,
+                PermitLimit = authPermitLimit,
                 Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 0
             }));
@@ -96,7 +100,7 @@ builder.Services.AddRateLimiter(options =>
             httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 5,
+                PermitLimit = feedbackPermitLimit,
                 Window = TimeSpan.FromMinutes(10),
                 QueueLimit = 0
             }));
@@ -229,3 +233,5 @@ static string RequireSetting(IConfiguration config, string key)
         $"  - Môi trường Production:  đặt biến môi trường {key.Replace(":", "__")}\n" +
         "Xem hướng dẫn trong README.MD, mục 'Cấu hình bí mật'.");
 }
+// Cho phép project kiểm thử (FoodieAPI.Tests) khởi động ứng dụng bằng WebApplicationFactory<Program>
+public partial class Program { }
