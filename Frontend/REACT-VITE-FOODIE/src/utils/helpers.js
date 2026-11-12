@@ -3,12 +3,16 @@ const USER_KEY = "foodie_user";
 const CART_KEY = "foodie_cart";
 const MOCK_USERS_KEY = "foodie_mock_users";
 
-const CATEGORIES = ["Tất cả", "Đồ ăn nhanh", "Món chính", "Đồ uống", "Tráng miệng"];
+const SESSION_EXPIRED_EVENT = "foodie:session-expired";
+
 const SHIPPING_FEE = 15000;
 const FREE_SHIP_FROM = 200000;
 
-const PRIMARY = "#E8321E";
-const display = { fontFamily: "'Baloo 2', 'Be Vietnam Pro', sans-serif", fontWeight: 800 };
+// Đỏ tươi chủ đạo + nền trắng
+const PRIMARY = "#E3121B";
+const PRIMARY_DARK = "#B80D14";
+// Tiêu đề: chữ đậm, gọn (không dùng font tròn kiểu "hoạt hình")
+const display = { fontFamily: "'Be Vietnam Pro', system-ui, sans-serif", fontWeight: 800, letterSpacing: "-0.01em" };
 const formatVND = (n) => Number(n).toLocaleString("vi-VN") + "đ";
 
 const removeAccents = (s) =>
@@ -17,40 +21,68 @@ const removeAccents = (s) =>
 const delay = (ms = 400) => new Promise((r) => setTimeout(r, ms));
 
 const storage = {
-    get(key, fallback = null) {
-        try {
-            const raw = localStorage.getItem(key);
-            return raw ? JSON.parse(raw) : fallback;
-        } catch {
-            return fallback;
-        }
-    },
-    set(key, value) {
-        try {
-            localStorage.setItem(key, JSON.stringify(value));
-        } catch {
-            /* bỏ qua nếu trình duyệt chặn storage */
-        }
-    },
-    remove(key) {
-        try {
-            localStorage.removeItem(key);
-        } catch {
-            /* bỏ qua */
-        }
-    },
+  get(key, fallback = null) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return fallback;
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return raw; // Trả về chuỗi thuần nếu không phải JSON (dành cho TOKEN_KEY)
+      }
+    } catch {
+      return fallback;
+    }
+  },
+  set(key, value) {
+    try {
+      // Nếu value là chuỗi thuần (như Token), lưu thẳng string. Nếu là Object/Array thì JSON.stringify
+      const data = typeof value === 'string' ? value : JSON.stringify(value);
+      localStorage.setItem(key, data);
+    } catch {
+      /* bỏ qua nếu trình duyệt chặn storage */
+    }
+  },
+  remove(key) {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      /* bỏ qua */
+    }
+  },
+};
+const API_ORIGIN = new URL(import.meta.env.VITE_API_URL).origin;
+// Ảnh món nằm trên backend: /uploads/... (ảnh upload) hoặc /images/products/... (thư viện ảnh).
+// React chạy ở cổng khác (3000) nên phải ghép thêm địa chỉ backend, nếu không trình duyệt sẽ tìm ảnh ở localhost:3000.
+const BACKEND_IMAGE_PREFIXES = ["/uploads/", "/images/"];
+export const resolveImageUrl = (url) =>
+    url && BACKEND_IMAGE_PREFIXES.some((p) => url.startsWith(p)) ? API_ORIGIN + url : url;
+
+// Trang quản trị (ASP.NET Core MVC) chạy trên backend, đăng nhập riêng bằng cookie
+export const ADMIN_URL = `${API_ORIGIN}/Admin`;
+
+// Trạng thái đơn hàng (khớp OrderStatuses phía backend)
+export const ORDER_STATUS = {
+    pending: { label: "Chờ xác nhận", color: "gold" },
+    preparing: { label: "Đang chuẩn bị", color: "blue" },
+    delivering: { label: "Đang giao", color: "geekblue" },
+    completed: { label: "Hoàn thành", color: "green" },
+    cancelled: { label: "Đã hủy", color: "default" },
 };
 
+export const formatDateTime = (iso) =>
+    new Date(iso).toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" });
 
 export {
     TOKEN_KEY,
     USER_KEY,
     CART_KEY,
     MOCK_USERS_KEY,
-    CATEGORIES,
+    SESSION_EXPIRED_EVENT,
     SHIPPING_FEE,
     FREE_SHIP_FROM,
     PRIMARY,
+    PRIMARY_DARK,
     display,
     formatVND,
     removeAccents,

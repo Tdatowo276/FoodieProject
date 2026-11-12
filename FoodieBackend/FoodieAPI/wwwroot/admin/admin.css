@@ -1,0 +1,29 @@
+/* Foodie Admin: bổ sung nhỏ cho Bootstrap 5 */
+
+/* Sidebar cố định chiều rộng trên desktop; trên điện thoại là offcanvas của Bootstrap */
+@media (min-width: 992px) {
+    .admin-sidebar {
+        width: 240px;
+        min-height: 100vh;
+        position: sticky;
+        top: 0;
+        flex-shrink: 0;
+    }
+}
+
+/* Cho phép nội dung co lại, tránh tràn ngang trên màn hình nhỏ */
+.admin-main {
+    min-width: 0;
+}
+
+.min-w-0 {
+    min-width: 0;
+}
+
+.admin-sidebar .nav-link.active {
+    background-color: var(--bs-primary);
+}
+
+.admin-sidebar .nav-link:not(.active):hover {
+    background-color: rgba(255, 255, 255, .1);
+}

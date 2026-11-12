@@ -1,0 +1,105 @@
+@model ProductFormViewModel
+@{
+    var isEdit = Model.Id is not null;
+    ViewData["Title"] = isEdit ? "Sửa món" : "Thêm món";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index">Món ăn</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@ViewData["Title"]</li>
+    </ol>
+</nav>
+
+<div class="card shadow-sm" style="max-width: 760px">
+    <div class="card-body">
+        <h1 class="h4 mb-3">@ViewData["Title"]</h1>
+
+        @* enctype multipart để upload ảnh; tag helper tự chèn Anti-forgery token *@
+        <form asp-action="@(isEdit ? "Edit" : "Create")" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data" novalidate>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2" role="alert"></div>
+
+            <div class="row g-3">
+                <div class="col-12">
+                    <label asp-for="Name" class="form-label"></label>
+                    <input asp-for="Name" class="form-control" />
+                    <span asp-validation-for="Name" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12 col-sm-6">
+                    <label asp-for="CategoryId" class="form-label"></label>
+                    <select asp-for="CategoryId" asp-items="Model.Categories" class="form-select">
+                        <option value="">-- Chọn danh mục --</option>
+                    </select>
+                    <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12 col-sm-6">
+                    <label asp-for="Price" class="form-label"></label>
+                    <input asp-for="Price" class="form-control" type="number" min="1000" max="10000000" step="1000" inputmode="numeric" />
+                    <span asp-validation-for="Price" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="Description" class="form-label"></label>
+                    <textarea asp-for="Description" class="form-control" rows="3" maxlength="300"></textarea>
+                    <span asp-validation-for="Description" class="text-danger small"></span>
+                </div>
+
+                <div class="col-12">
+                    <label asp-for="ImageFile" class="form-label"></label>
+                    <div class="d-flex flex-wrap align-items-start gap-3">
+                        <img id="image-preview" src="@Model.CurrentImageUrl" alt="Ảnh món"
+                             class="rounded border object-fit-cover @(Model.CurrentImageUrl is null ? "d-none" : "")" width="120" height="120" />
+                        <div class="flex-grow-1" style="min-width: 220px">
+                            @* accept + data-max-bytes chỉ giúp người dùng; server luôn kiểm tra lại đuôi, kích thước, nội dung *@
+                            <input asp-for="ImageFile" type="file" class="form-control" accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                                   data-max-bytes="@Limits.MaxImageBytes" data-preview="#image-preview" />
+                            <span asp-validation-for="ImageFile" class="text-danger small"></span>
+
+                            <label asp-for="LibraryImage" class="form-label mt-3 mb-1 small"></label>
+                            @if (Model.LibraryImages.Count == 0)
+                            {
+                                <div class="form-text">
+                                    Thư mục <code>wwwroot/images/products</code> chưa có ảnh hợp lệ
+                                    (tên file không dấu, nối bằng gạch ngang, ví dụ <code>pho-bo-tai-nam.png</code>).
+                                </div>
+                            }
+                            else
+                            {
+                                <select asp-for="LibraryImage" asp-items="Model.LibraryImages" class="form-select" data-preview="#image-preview">
+                                    <option value="">-- Không đổi --</option>
+                                </select>
+                            }
+                            <span asp-validation-for="LibraryImage" class="text-danger small"></span>
+
+                            @if (Model.CurrentImageUrl is not null)
+                            {
+                                <div class="form-check mt-2">
+                                    <input asp-for="RemoveImage" class="form-check-input" />
+                                    <label asp-for="RemoveImage" class="form-check-label"></label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="form-check">
+                        <input asp-for="IsFeatured" class="form-check-input" />
+                        <label asp-for="IsFeatured" class="form-check-label"></label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Lưu</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Hủy</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

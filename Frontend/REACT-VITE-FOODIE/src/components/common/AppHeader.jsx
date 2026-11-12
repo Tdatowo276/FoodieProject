@@ -1,18 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Layout, Menu, Badge, Button, Dropdown, Space, Avatar, Typography, Grid } from 'antd';
-import { HomeOutlined, ShopOutlined, ShoppingCartOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons';
-import { PRIMARY, display } from '../../utils/helpers';
+import {
+    HomeOutlined, ShopOutlined, ShoppingCartOutlined, UserOutlined, LogoutOutlined, ProfileOutlined, SettingOutlined, TeamOutlined,
+} from '@ant-design/icons';
+import { PRIMARY, display, ADMIN_URL, resolveImageUrl } from '../../utils/helpers';
 
 const { Text } = Typography;
 const { useBreakpoint } = Grid;
 
+// Logo: đặt file ảnh vào public/logo.png (nên là PNG nền trong suốt hoặc SVG, cắt sát viền)
+const LOGO_SRC = "/logo.png";
+
 const AppHeader = ({ view, setView, cartCount, user, onLogout }) => {
     const screens = useBreakpoint();
     const isMobile = !screens.md;
+    const [logoMissing, setLogoMissing] = useState(false);
 
     const menuItems = [
-        { key: "home", icon: <HomeOutlined />, label: isMobile ? null : "Trang chủ", title: "Trang chủ" },
-        { key: "products", icon: <ShopOutlined />, label: isMobile ? null : "Thực đơn", title: "Thực đơn" },
+        { key: "home", icon: isMobile ? <HomeOutlined /> : null, label: isMobile ? null : "TRANG CHỦ", title: "Trang chủ" },
+        { key: "products", icon: isMobile ? <ShopOutlined /> : null, label: isMobile ? null : "THỰC ĐƠN", title: "Thực đơn" },
+        { key: "about", icon: isMobile ? <TeamOutlined /> : null, label: isMobile ? null : "VỀ CHÚNG TÔI", title: "Về chúng tôi" },
     ];
 
     return (
@@ -25,33 +32,55 @@ const AppHeader = ({ view, setView, cartCount, user, onLogout }) => {
                 alignItems: "center",
                 gap: 12,
                 background: "#fff",
-                padding: isMobile ? "0 12px" : "0 28px",
-                borderBottom: "1px solid #F0E3D8",
+                padding: isMobile ? "0 12px" : "0 max(28px, calc((100% - 1180px) / 2))",
+                borderTop: `6px solid ${PRIMARY}`,
+                borderBottom: "1px solid #EEE",
                 height: 68,
-                lineHeight: "68px",
+                lineHeight: "62px",
             }}
         >
-            <div
+            <button
+                type="button"
                 onClick={() => setView("home")}
-                style={{ ...display, fontSize: 28, color: PRIMARY, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
+                aria-label="Foodie - về trang chủ"
+                style={{
+                    ...display, fontSize: 26, color: PRIMARY, cursor: "pointer", background: "none", border: "none",
+                    padding: 0, display: "flex", alignItems: "center", gap: 8, letterSpacing: "0.02em",
+                }}
             >
-                <span
-                    style={{
-                        width: 36, height: 36, borderRadius: 11, display: "grid", placeItems: "center", fontSize: 20,
-                        background: "linear-gradient(135deg, #FF8A00, #E8321E)",
-                    }}
-                >
-                    🍴
-                </span>
-                {!isMobile && "Foodie"}
-            </div>
+                {logoMissing ? (
+                    // Chưa có file public/logo.png => dùng logo chữ
+                    <>
+                        <span
+                            aria-hidden="true"
+                            style={{
+                                width: 34, height: 34, borderRadius: 6, background: PRIMARY, color: "#fff",
+                                display: "grid", placeItems: "center", fontSize: 20, lineHeight: 1,
+                            }}
+                        >
+                            F
+                        </span>
+                        {!isMobile && "FOODIE"}
+                    </>
+                ) : (
+                    <img
+                        src={LOGO_SRC}
+                        alt="Foodie"
+                        onError={() => setLogoMissing(true)}
+                        style={{ height: isMobile ? 40 : 52, width: "auto", display: "block" }}
+                    />
+                )}
+            </button>
 
             <Menu
                 mode="horizontal"
                 selectedKeys={[view]}
                 items={menuItems}
                 onClick={({ key }) => setView(key)}
-                style={{ flex: 1, minWidth: 0, borderBottom: "none", background: "transparent" }}
+                style={{
+                    flex: 1, minWidth: 0, borderBottom: "none", background: "transparent",
+                    justifyContent: isMobile ? "flex-start" : "center", fontWeight: 600,
+                }}
             />
 
             <Space size={12}>
@@ -71,13 +100,28 @@ const AppHeader = ({ view, setView, cartCount, user, onLogout }) => {
                         menu={{
                             items: [
                                 { key: "email", label: user.email, disabled: true },
+                                { type: "divider" },
+                                { key: "profile", icon: <UserOutlined />, label: "Tài khoản của tôi", onClick: () => setView("profile") },
+                                { key: "orders", icon: <ProfileOutlined />, label: "Đơn của tôi", onClick: () => setView("orders") },
+                                // Trang quản trị là ASP.NET Core MVC trên backend (đăng nhập riêng bằng cookie).
+                                // Đây chỉ là đường dẫn; quyền admin luôn được kiểm tra phía server.
+                                ...(user.role === "Admin"
+                                    ? [{
+                                        key: "admin",
+                                        icon: <SettingOutlined />,
+                                        label: <a href={ADMIN_URL} target="_blank" rel="noopener noreferrer">Trang quản trị</a>,
+                                    }]
+                                    : []),
+                                { type: "divider" },
                                 { key: "logout", icon: <LogoutOutlined />, label: "Đăng xuất", onClick: onLogout },
                             ],
                         }}
                         placement="bottomRight"
                     >
                         <Space style={{ cursor: "pointer" }}>
-                            <Avatar style={{ background: PRIMARY }}>{user.name.trim().charAt(0).toUpperCase()}</Avatar>
+                            <Avatar src={resolveImageUrl(user.avatarUrl)} style={{ background: user.avatarUrl ? "#fff" : PRIMARY }}>
+                                {user.name.trim().charAt(0).toUpperCase()}
+                            </Avatar>
                             {!isMobile && <Text strong>{user.name}</Text>}
                         </Space>
                     </Dropdown>

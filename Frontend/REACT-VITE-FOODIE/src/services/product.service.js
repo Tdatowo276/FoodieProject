@@ -21,7 +21,7 @@ const MOCK_PRODUCTS = [
 ];
 const USE_MOCK = import.meta.env.VITE_USE_MOCK !== "false";
 const productService = {
-    // GET /api/products?keyword=&category=
+    // GET /api/products?keyword=&categoryId=
     async getAll(params = {}) {
         if (USE_MOCK) {
             await delay();
@@ -29,6 +29,7 @@ const productService = {
             return MOCK_PRODUCTS.filter(
                 (p) =>
                     (!params.category || p.category === params.category) &&
+                    (!params.categoryId || p.category === [...new Set(MOCK_PRODUCTS.map((x) => x.category))][params.categoryId - 1]) &&
                     removeAccents(p.name).includes(q)
             );
         }
@@ -50,7 +51,30 @@ const productService = {
         }
         return axiosClient.get("/products/featured");
     },
+
+    // GET /api/products/best-sellers  =>  [{ productId, name, imageUrl, quantity, revenue }]
+    // Món bán chạy 30 ngày qua (chỉ tính đơn đã hoàn thành)
+    async getBestSellers(take = 8) {
+        if (USE_MOCK) return [];
+        return axiosClient.get("/products/best-sellers", { params: { take } });
+    },
 };
 
+const categoryService = {
+    // GET /api/categories  =>  [{ id, name, description, isActive, productCount }]
+    // Danh mục do admin quản lý trên trang /Admin; chỉ trả danh mục đang hiển thị
+    async getAll() {
+        if (USE_MOCK) {
+            await delay(150);
+            const names = [...new Set(MOCK_PRODUCTS.map((p) => p.category))];
+            return names.map((name, i) => ({
+                id: i + 1,
+                name,
+                productCount: MOCK_PRODUCTS.filter((p) => p.category === name).length,
+            }));
+        }
+        return axiosClient.get("/categories");
+    },
+};
 
-export { productService, MOCK_PRODUCTS }
+export { productService, categoryService, MOCK_PRODUCTS }

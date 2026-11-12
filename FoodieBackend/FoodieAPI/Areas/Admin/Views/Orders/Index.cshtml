@@ -1,0 +1,31 @@
+@model OrderListViewModel
+@{
+    ViewData["Title"] = "Đơn hàng";
+}
+
+<h1 class="h3 mb-3">Đơn hàng</h1>
+
+<form method="get" asp-action="Index" class="card card-body shadow-sm mb-3" data-ajax-filter="#order-list" role="search">
+    <div class="row g-2">
+        <div class="col-12 col-md-6">
+            <input type="search" name="keyword" value="@Model.Query.Keyword" class="form-control"
+                   placeholder="Mã đơn hoặc tên người nhận…" aria-label="Từ khóa" maxlength="100" />
+        </div>
+        <div class="col-8 col-md-4">
+            <select name="status" class="form-select" aria-label="Trạng thái">
+                <option value="">Tất cả trạng thái</option>
+                @foreach (var s in OrderStatuses.All)
+                {
+                    <option value="@s" selected="@(s == Model.Query.Status)">@OrderStatuses.Label(s)</option>
+                }
+            </select>
+        </div>
+        <div class="col-4 col-md-2 d-grid">
+            <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-funnel me-1"></i>Lọc</button>
+        </div>
+    </div>
+</form>
+
+<div id="order-list" aria-live="polite">
+    <partial name="_OrderTable" model="Model" />
+</div>

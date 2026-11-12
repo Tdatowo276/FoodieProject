@@ -1,0 +1,40 @@
+@model OrderListViewModel
+
+@if (Model.Result.Items.Count == 0)
+{
+    <div class="card card-body text-center text-secondary shadow-sm">Không có đơn hàng nào phù hợp.</div>
+    return;
+}
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Mã đơn</th>
+                    <th>Người nhận</th>
+                    <th class="d-none d-md-table-cell">Thời gian</th>
+                    <th class="text-end">Tổng tiền</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var o in Model.Result.Items)
+                {
+                    <tr>
+                        <td><a class="fw-medium" asp-action="Details" asp-route-id="@o.Code">@o.Code</a></td>
+                        <td>
+                            @o.Customer
+                            <div class="small text-secondary d-md-none">@AdminFormat.VnTime(o.CreatedAt)</div>
+                        </td>
+                        <td class="d-none d-md-table-cell text-nowrap">@AdminFormat.VnTime(o.CreatedAt)</td>
+                        <td class="text-end text-nowrap">@AdminFormat.Money(o.Total)</td>
+                        <td><span class="badge text-bg-@AdminFormat.StatusColor(o.Status)">@OrderStatuses.Label(o.Status)</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<partial name="_Pager" model="Model.Pager" />

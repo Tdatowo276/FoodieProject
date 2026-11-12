@@ -1,0 +1,28 @@
+@model FeedbackListViewModel
+@{
+    ViewData["Title"] = "Góp ý";
+}
+
+<h1 class="h3 mb-3">Góp ý của khách hàng</h1>
+
+<form method="get" asp-action="Index" class="card card-body shadow-sm mb-3" data-ajax-filter="#feedback-list" role="search">
+    <div class="row g-2">
+        <div class="col-12 col-md-6">
+            <input type="search" name="keyword" value="@Model.Query.Keyword" class="form-control"
+                   placeholder="Tên, email hoặc nội dung…" aria-label="Từ khóa" maxlength="100" />
+        </div>
+        <div class="col-8 col-md-4">
+            <select name="unread" class="form-select" aria-label="Trạng thái">
+                <option value="">Tất cả</option>
+                <option value="true" selected="@(Model.Query.Unread == true)">Chưa đọc</option>
+            </select>
+        </div>
+        <div class="col-4 col-md-2 d-grid">
+            <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-funnel me-1"></i>Lọc</button>
+        </div>
+    </div>
+</form>
+
+<div id="feedback-list" aria-live="polite">
+    <partial name="_FeedbackTable" model="Model" />
+</div>

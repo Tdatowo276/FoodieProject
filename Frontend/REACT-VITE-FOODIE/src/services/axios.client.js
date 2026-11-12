@@ -1,5 +1,5 @@
 import axios from "axios";
-import { TOKEN_KEY, USER_KEY, storage } from "../utils/helpers";
+import { TOKEN_KEY, USER_KEY, SESSION_EXPIRED_EVENT, storage } from "../utils/helpers";
 const API_URL = import.meta.env.VITE_API_URL || "https://localhost:7000/api";
 const axiosClient = axios.create({
     baseURL: API_URL,
@@ -16,9 +16,13 @@ axiosClient.interceptors.request.use((config) => {
 axiosClient.interceptors.response.use(
     (response) => response.data,
     (error) => {
-        if (error.response?.status === 401) {
+        // 401 khi đang có token = token hết hạn hoặc tài khoản vừa bị khóa => đăng xuất.
+        // (401 của chính request đăng nhập chỉ là sai mật khẩu, không xử lý ở đây.)
+        const isLoginRequest = error.config?.url?.startsWith("/auth/login");
+        if (error.response?.status === 401 && !isLoginRequest && storage.get(TOKEN_KEY)) {
             storage.remove(TOKEN_KEY);
             storage.remove(USER_KEY);
+            window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));   // useAuthView lắng nghe để cập nhật giao diện
         }
 
         const data = error.response?.data;

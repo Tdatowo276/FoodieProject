@@ -1,45 +1,47 @@
 import React from 'react';
-import { Card, Tag, Rate, Flex, Typography, Button } from 'antd';
-import { FireFilled, PlusOutlined } from '@ant-design/icons';
+import { Card, Flex, Typography, Button } from 'antd';
+import { StarFilled } from '@ant-design/icons';
 import ProductImage from './ProductImage';
-import { formatVND, PRIMARY, display } from '../../utils/helpers';
+import { formatVND } from '../../utils/helpers';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
-const ProductCard = ({ product, onAdd, onOpen }) => {
-    return (
-        <Card
-            hoverable
-            style={{ height: "100%", overflow: "hidden" }}
-            styles={{ body: { padding: 16 } }}
-            cover={
-                <div onClick={() => onOpen(product)} style={{ position: "relative", cursor: "pointer" }}>
-                    <ProductImage product={product} height={170} />
-                    {product.isFeatured && (
-                        <Tag color="orange" icon={<FireFilled />} style={{ position: "absolute", top: 10, left: 10, margin: 0 }}>
-                            Bán chạy
-                        </Tag>
-                    )}
-                </div>
-            }
-        >
-            <Text type="secondary" style={{ fontSize: 13 }}>{product.category}</Text>
-            <Title
-                level={5}
-                style={{ margin: "2px 0 6px", cursor: "pointer" }}
+/** Thẻ món: ảnh lớn, tên, giá, nút "Đặt món" viền đỏ. Bấm ảnh / tên để xem chi tiết. */
+const ProductCard = ({ product, onAdd, onOpen }) => (
+    <Card
+        hoverable
+        style={{ height: "100%", borderRadius: 6, border: "1px solid #F0F0F0", display: "flex", flexDirection: "column" }}
+        styles={{ body: { padding: 14, display: "flex", flexDirection: "column", flex: 1 } }}
+        cover={
+            <button
+                type="button"
                 onClick={() => onOpen(product)}
+                aria-label={`Xem chi tiết ${product.name}`}
+                style={{ border: "none", padding: 12, background: "#fff", cursor: "pointer", borderRadius: "6px 6px 0 0" }}
             >
-                {product.name}
-            </Title>
-            <Rate disabled allowHalf value={product.rating} style={{ fontSize: 13 }} />
-            <Flex justify="space-between" align="center" style={{ marginTop: 12 }} gap={8}>
-                <Text strong style={{ ...display, fontSize: 20, color: PRIMARY }}>{formatVND(product.price)}</Text>
-                <Button type="primary" shape="round" icon={<PlusOutlined />} onClick={() => onAdd(product)} aria-label={`Thêm ${product.name} vào giỏ`}>
-                    Thêm
-                </Button>
-            </Flex>
-        </Card>
-    );
-}
+                <ProductImage product={product} height={200} />
+            </button>
+        }
+    >
+        <Text
+            strong
+            style={{ fontSize: 16, cursor: "pointer", flex: 1, marginBottom: 12 }}
+            onClick={() => onOpen(product)}
+        >
+            {product.name}
+        </Text>
+        {product.reviewCount > 0 && (
+            <Text type="secondary" style={{ fontSize: 13, marginTop: -8, marginBottom: 10 }}>
+                <StarFilled style={{ color: '#FADB14' }} /> {product.rating.toFixed(1)} ({product.reviewCount})
+            </Text>
+        )}
+        <Flex justify="space-between" align="center" gap={8} wrap>
+            <Text strong style={{ fontSize: 16 }}>{formatVND(product.price)}</Text>
+            <Button danger shape="round" onClick={() => onAdd(product)} aria-label={`Đặt ${product.name}`}>
+                Đặt món
+            </Button>
+        </Flex>
+    </Card>
+);
 
 export default ProductCard;

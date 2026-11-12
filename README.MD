@@ -1,120 +1,154 @@
-Markdown
-# 🍔 Foodie Project - Fullstack Food Ordering Web Application
+# Foodie: Hệ thống đặt đồ ăn trực tuyến
 
-Dự án thương mại điện tử bán đồ ăn trực tuyến (Foodie) được phát triển theo mô hình tách biệt hoàn toàn giữa **Frontend (ReactJS + Vite)** và **Backend (ASP.NET Core Web API)**.
+Ứng dụng web đặt đồ ăn gồm **trang khách hàng** (React) và **trang quản trị** (ASP.NET Core MVC), dùng chung một backend
+**ASP.NET Core 8** (MVC + Web API) với **Entity Framework Core** và **SQL Server**.
 
----
+| Thành phần | Địa chỉ khi chạy local |
+|---|---|
+| Trang khách hàng (React) | http://localhost:3000 |
+| Trang quản trị (MVC) | http://localhost:5037/Admin |
+| Tài liệu API (Swagger) | http://localhost:5037/swagger |
 
-## 📂 1. Cấu trúc thư mục dự án & Ý nghĩa các thành phần
+## Chức năng chính
 
-Dự án được quản lý tập trung trong một thư mục gốc với các phân cấp như sau:
+**Khách hàng:**
+- Xem thực đơn theo danh mục, tìm món không cần gõ dấu, xem món nổi bật và bán chạy.
+- Giỏ hàng; đặt hàng với địa chỉ mặc định hoặc địa chỉ mới.
+- Theo dõi tiến độ đơn; đánh giá món đã mua.
+- Quản lý tài khoản: ảnh đại diện, họ tên, mật khẩu, địa chỉ.
+- Gửi góp ý, xem bản đồ cửa hàng.
 
-```text
-FoodieProject/
-│
-├── FoodieBackend/                  # Phía Backend (.NET Core)
-│   └── FoodieAPI/                  # Source code chính của API
-│       ├── Controllers/            # Xử lý các HTTP Request từ client
-│       ├── Services/               # Viết logic nghiệp vụ (Business Logic)
-│       ├── Repositories/           # Tương tác trực tiếp với cơ sở dữ liệu
-│       ├── Models/                 # Định nghĩa các cấu trúc dữ liệu / Entity
-│       ├── Middlewares/            # Xử lý trung gian (xác thực, lỗi,...)
-│       ├── Program.cs              # Điểm khởi chạy ứng dụng & cấu hình DI, Swagger
-│       └── appsettings.json        # Cấu hình chuỗi kết nối Database và môi trường
-│
-├── Frontend/                       # Phía Frontend (ReactJS + Vite)
-│   └── REACT-VITE-FOODIE/
-│       ├── public/                 # Chứa tài nguyên tĩnh công khai (ảnh, icon,...)
-│       └── src/
-│           ├── assets/             # CSS toàn cục, hình ảnh, style chung
-│           ├── components/         # Các component nhỏ tái sử dụng (Navbar, Footer, Cart,...)
-│           ├── context/            # Quản lý Global State (AuthContext, CartContext,...)
-│           ├── pages/              # Các trang chính của website (Home, Login, Products, Cart,...)
-│           ├── routes/             # Cấu hình định tuyến trang (React Router)
-│           ├── services/           # Các file gọi API kết nối Backend (Axios client)
-│           ├── utils/              # Các hàm tiện ích, format dữ liệu, validation
-│           ├── App.jsx             # Component layout khung toàn cục
-│           └── main.jsx            # Điểm khởi chạy ứng dụng React
-│
-├── FoodieDB.sql                    # File script khởi tạo Cơ sở dữ liệu SQL Server
-└── README.md                       # Tài liệu hướng dẫn dự án
+**Quản trị viên:**
+- Thống kê doanh thu, số đơn, khách hàng, món bán chạy.
+- Quản lý món ăn (kèm upload ảnh hoặc chọn từ thư viện ảnh) và danh mục.
+- Xử lý đơn theo đúng luồng trạng thái.
+- Khóa / mở khóa tài khoản; đọc góp ý; kiểm duyệt đánh giá.
 
+## Tài liệu
 
-🚀 2. Hướng dẫn Clone và Chạy dự án (Cross-Platform: macOS & Windows)
-Bước 1: Clone code từ GitHub về máy
-Mở Terminal (macOS) hoặc Command Prompt / Git Bash (Windows) và chạy lệnh:
+| Tài liệu | Nội dung |
+|---|---|
+| [docs/UseCases.md](docs/UseCases.md) | Tác nhân, use case, quy tắc nghiệp vụ, đặc tả chi tiết, sơ đồ trạng thái đơn, yêu cầu phi chức năng |
+| [docs/Architecture.md](docs/Architecture.md) | Kiến trúc, luồng xác thực, xử lý lỗi, quản lý trạng thái, công nghệ, cấu trúc thư mục |
+| [docs/Database.md](docs/Database.md) | ERD, quan hệ, ràng buộc, quyết định thiết kế, lịch sử migration |
+| [docs/API.md](docs/API.md) | Toàn bộ Web API (47 thao tác), quy ước, ví dụ |
+| [docs/Security.md](docs/Security.md) | Đối chiếu yêu cầu bảo mật của đề, các lỗ hổng đã xử lý, hạn chế |
+| [docs/TestCases.md](docs/TestCases.md) | Test case tự động + thủ công, bảng truy vết yêu cầu |
 
-Bash
-git clone <URL-repository-cua-ban>
+## Cài đặt và chạy
+
+### Yêu cầu
+- **.NET 8 SDK** trở lên: https://dotnet.microsoft.com/download
+- **SQL Server**: bản **Express** là đủ (instance mặc định `.\SQLEXPRESS`). macOS / Linux có thể chạy SQL Server bằng Docker.
+- **Node.js 18+** (khuyên dùng bản LTS).
+
+### Bước 1: Clone
+
+```powershell
+git clone <URL-repository>
 cd FoodieProject
+```
 
+### Bước 2: Cấu hình bí mật (bắt buộc, làm 1 lần)
 
-Bước 2: Thiết lập và chạy Backend (ASP.NET Core Web API)
-Yêu cầu hệ thống: Đã cài đặt .NET 9 SDK trở lên.
+Theo yêu cầu bảo mật, chuỗi kết nối, khóa JWT và mật khẩu admin **không nằm trong mã nguồn hay `appsettings.json`**.
+Khi phát triển, các giá trị này lưu trong **User Secrets** (nằm ngoài thư mục dự án, không bị commit).
+Thiếu khóa nào thì ứng dụng dừng ngay khi khởi động và báo rõ thiếu khóa đó.
 
-Cấu hình Cơ sở dữ liệu:
+**Windows (khuyên dùng):** mở PowerShell (hoặc terminal của VS Code) tại thư mục gốc dự án, chạy script, rồi nhập mật khẩu admin khi được hỏi:
 
-Mở file FoodieDB.sql để tạo database trên SQL Server (hoặc cấu hình lại chuỗi kết nối trong file FoodieBackend/FoodieAPI/appsettings.json).
+```powershell
+Set-ExecutionPolicy -Scope Process Bypass; .\FoodieBackend\scripts\setup-secrets.ps1
+```
 
-Chạy ứng dụng:
+**macOS / Linux hoặc cấu hình thủ công:**
 
-Di chuyển vào thư mục chứa project API:
-
-Bash
+```bash
 cd FoodieBackend/FoodieAPI
-Khởi chạy server:
+dotnet user-secrets set "ConnectionStrings:Default" "Server=localhost;Database=FoodieDB;User Id=sa;Password=<mật khẩu SQL>;TrustServerCertificate=True;"
+dotnet user-secrets set "Jwt:Key" "$(openssl rand -base64 48)"
+dotnet user-secrets set "Seed:AdminPassword" "<mật khẩu admin, tối thiểu 8 ký tự>"
+```
 
-Bash
+| Khóa | Bắt buộc | Mô tả |
+|---|---|---|
+| `ConnectionStrings:Default` | ✅ | Chuỗi kết nối SQL Server |
+| `Jwt:Key` | ✅ | Khóa ký token JWT, tối thiểu 32 byte |
+| `Seed:AdminPassword` | ✅ (lần chạy đầu) | Mật khẩu của tài khoản admin `admin@foodie.vn`, chỉ dùng khi tạo admin lần đầu |
+
+Trên **Production**, đặt các giá trị trên bằng biến môi trường, thay `:` bằng `__`. Ví dụ: `ConnectionStrings__Default`, `Jwt__Key`.
+
+### Bước 3: Chạy backend
+
+```powershell
+cd FoodieBackend\FoodieAPI
 dotnet run
+```
 
-Sau khi chạy thành công, Backend sẽ khởi chạy và bạn có thể truy cập Swagger UI để kiểm tra API tại: http://localhost:5037 (hoặc cổng hiển thị trên terminal của bạn).
+Lần chạy đầu, ứng dụng **tự tạo CSDL `FoodieDB`** bằng EF Core Migrations và nạp dữ liệu mẫu: tài khoản admin,
+6 danh mục, 15 món kèm ảnh. Không cần chạy script SQL nào. Khi thấy dòng `Now listening on: http://localhost:5037` là backend đã sẵn sàng.
 
-Bước 3: Thiết lập và chạy Frontend (ReactJS + Vite)
-Yêu cầu hệ thống: Đã cài đặt Node.js (khuyên dùng bản LTS).
+### Bước 4: Chạy frontend
 
-Cài đặt thư viện:
+Mở **một terminal khác**:
 
-Mở một cửa sổ Terminal mới, di chuyển đến thư mục Frontend:
-
-Bash
-
-cd Frontend/REACT-VITE-FOODIE
-Cài đặt các gói phụ thuộc (dependencies):
-
-Bash
-
-
+```powershell
+cd Frontend\REACT-VITE-FOODIE
 npm install
-npm install antd @ant-design/icons axios react react-dom
-
-2. Danh sách các dependencies chuẩn trong package.json:
-Khi mọi người chạy npm install, npm sẽ tự động quét file package.json để cài đặt. Dưới đây là đoạn cấu hình chuẩn phần dependencies mà dự án của bạn đang sử dụng:
-
-JSON
-"dependencies": {
-  "@ant-design/icons": "^5.x.x",
-  "antd": "^5.x.x",
-  "axios": "^1.x.x",
-  "react": "^18.x.x || ^19.0.0",
-  "react-dom": "^18.x.x || ^19.0.0"
-}
-
-
-Chạy ứng dụng ở môi trường Development:
-
-Bash
-
 npm run dev
+```
 
-Truy cập ứng dụng:
+Mở http://localhost:3000. Địa chỉ backend cấu hình trong `.env.development` (`VITE_API_URL`).
 
-Mở trình duyệt (Chrome/Edge/Safari) và truy cập đường dẫn local được cung cấp trên terminal (thường là http://localhost:3000 hoặc http://localhost:3001).
+### Tài khoản
 
-🛠 3. Công nghệ sử dụng
-Frontend: ReactJS, Vite, React Router DOM, Axios, CSS/Inline Styles.
+| Vai trò | Đăng nhập |
+|---|---|
+| Quản trị viên | `admin@foodie.vn` / mật khẩu đã đặt ở Bước 2. Dùng cho http://localhost:5037/Admin hoặc nút Authorize trong Swagger |
+| Khách hàng | Tự đăng ký tại trang khách hàng |
 
-Backend: ASP.NET Core Web API (.NET 9), C#, Entity Framework Core / Ado.NET, Swagger.
+### Kiểm thử tự động
 
-Database: SQL Server.
+```powershell
+cd FoodieBackend
+dotnet test FoodieAPI.Tests -c Release
+```
 
-Version Control: Git & GitHub.
+Có 138 test (unit + integration), chạy khoảng 20–30 giây trên **CSDL tạm tự tạo và tự xóa**, không ảnh hưởng dữ liệu thật.
+Chi tiết: [FoodieBackend/FoodieAPI.Tests/README.md](FoodieBackend/FoodieAPI.Tests/README.md).
+
+## Tùy chỉnh nội dung
+
+| Muốn đổi | Sửa ở |
+|---|---|
+| Ảnh banner trang chủ | `Frontend/REACT-VITE-FOODIE/public/banners/` + `src/config/banners.js` |
+| Logo | `Frontend/REACT-VITE-FOODIE/public/logo.png` |
+| Địa chỉ, số điện thoại, tọa độ bản đồ | `Frontend/REACT-VITE-FOODIE/src/config/contact.js` |
+| Thông tin nhóm (trang Về chúng tôi) | `Frontend/REACT-VITE-FOODIE/src/config/about.js` |
+| Ảnh món dùng chung của nhóm | `FoodieBackend/FoodieAPI/wwwroot/images/products/` (quy tắc đặt tên trong README của thư mục) |
+| Thực đơn mẫu khi tạo CSDL mới | `FoodieBackend/FoodieAPI/Data/Seeder.cs` |
+
+## Nhật ký hệ thống (log)
+
+Khi backend chạy, log được ghi vào `FoodieBackend/FoodieAPI/logs/`:
+- `foodie-<ngày>.txt`: mọi sự kiện và request.
+- `errors-<ngày>.txt`: chỉ cảnh báo và lỗi.
+
+Mỗi ngày một file, giữ 14 ngày. Thư mục này không đưa lên Git.
+
+## Xử lý sự cố
+
+| Hiện tượng | Cách xử lý |
+|---|---|
+| Backend dừng với "Thiếu cấu hình bắt buộc ..." | Chưa làm Bước 2; chạy lại script cấu hình bí mật |
+| Không kết nối được SQL Server | Kiểm tra dịch vụ `SQL Server (SQLEXPRESS)` đang chạy; sửa `ConnectionStrings:Default` nếu dùng instance khác |
+| `dotnet run` / `dotnet test` báo file `FoodieAPI.exe` đang bị khóa | Một bản backend khác đang chạy: tắt nó (Ctrl+C), hoặc chạy test với `-c Release` |
+| Trang React báo "Không kết nối được máy chủ" | Backend chưa chạy, hoặc sai `VITE_API_URL` trong `.env.development` |
+| Đăng nhập React bị đăng xuất liên tục | Token cũ không còn hợp lệ (khóa JWT đã đổi): đăng nhập lại |
+| Muốn đổi mật khẩu admin | Đăng nhập React bằng tài khoản admin → **Tài khoản của tôi** → **Đổi mật khẩu**, hoặc gọi `PUT /api/profile/password` trong Swagger. `Seed:AdminPassword` chỉ dùng khi tạo admin lần đầu, sửa nó **không** đổi mật khẩu admin đã có |
+| Muốn tạo lại CSDL từ đầu | Xóa CSDL `FoodieDB` (SSMS) rồi chạy lại backend; migration và dữ liệu mẫu sẽ tạo lại, admin dùng mật khẩu đang lưu trong `Seed:AdminPassword` |
+
+## Nhóm thực hiện
+
+- Nguyễn Tiến Đạt
+- Trương Thị Luyến

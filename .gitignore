@@ -61,5 +61,15 @@ dist-ssr
 *.suo
 *.ntvs*
 *.njsproj
-*.sln
 *.sw?
+
+# =========================================
+# 4. DỮ LIỆU RUNTIME (không commit)
+# =========================================
+# SQLite database sinh ra khi chạy
+*.db
+*.db-shm
+*.db-wal
+# Ảnh do người dùng upload
+FoodieBackend/FoodieAPI/wwwroot/uploads/*
+!FoodieBackend/FoodieAPI/wwwroot/uploads/.gitkeep

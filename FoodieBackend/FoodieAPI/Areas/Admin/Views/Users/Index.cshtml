@@ -1,0 +1,29 @@
+@model UserListViewModel
+@{
+    ViewData["Title"] = "Người dùng";
+}
+
+<h1 class="h3 mb-3">Người dùng</h1>
+
+<form method="get" asp-action="Index" class="card card-body shadow-sm mb-3" data-ajax-filter="#user-list" role="search">
+    <div class="row g-2">
+        <div class="col-12 col-md-6">
+            <input type="search" name="keyword" value="@Model.Query.Keyword" class="form-control"
+                   placeholder="Email hoặc họ tên…" aria-label="Từ khóa" maxlength="100" />
+        </div>
+        <div class="col-8 col-md-4">
+            <select name="role" class="form-select" aria-label="Vai trò">
+                <option value="">Tất cả vai trò</option>
+                <option value="@Roles.Customer" selected="@(Model.Query.Role == Roles.Customer)">Khách hàng</option>
+                <option value="@Roles.Admin" selected="@(Model.Query.Role == Roles.Admin)">Quản trị viên</option>
+            </select>
+        </div>
+        <div class="col-4 col-md-2 d-grid">
+            <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-funnel me-1"></i>Lọc</button>
+        </div>
+    </div>
+</form>
+
+<div id="user-list" aria-live="polite">
+    <partial name="_UserTable" model="Model" />
+</div>

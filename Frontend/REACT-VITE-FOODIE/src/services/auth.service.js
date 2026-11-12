@@ -1,5 +1,5 @@
 import axiosClient from "./axios.client";
-import { delay, MOCK_USERS_KEY, storage } from "../utils/helpers";
+import { delay, MOCK_USERS_KEY, USER_KEY, storage } from "../utils/helpers";
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK !== "false";
 
@@ -36,10 +36,20 @@ const authService = {
         }
         return axiosClient.post("/auth/register", { name, email, password });
     },
+
+    // GET /api/auth/me  =>  { id, name, email, role }
+    // Gọi khi mở trang để kiểm tra token còn hợp lệ (hết hạn / tài khoản bị khóa => 401)
+    async me() {
+        if (USE_MOCK) {
+            await delay(100);
+            return storage.get(USER_KEY, null);
+        }
+        return axiosClient.get("/auth/me");
+    },
 };
 
 const orderService = {
-    // POST /api/orders  =>  { orderCode, total }
+    // POST /api/orders  =>  { orderCode, total, status, createdAt }
     async create(payload) {
         if (USE_MOCK) {
             await delay(700);
@@ -49,6 +59,24 @@ const orderService = {
             };
         }
         return axiosClient.post("/orders", payload);
+    },
+
+    // GET /api/orders/me?page=&pageSize=  =>  { items: [{ code, createdAt, total, status, itemCount }], total, page, pageSize }
+    async getMine({ page = 1, pageSize = 10 } = {}) {
+        if (USE_MOCK) {
+            await delay();
+            return { items: [], total: 0, page, pageSize };
+        }
+        return axiosClient.get("/orders/me", { params: { page, pageSize } });
+    },
+
+    // GET /api/orders/{code}  =>  chi tiết đơn (chỉ xem được đơn của chính mình)
+    async getByCode(code) {
+        if (USE_MOCK) {
+            await delay();
+            throw new Error("Chế độ dữ liệu mẫu không có chi tiết đơn hàng.");
+        }
+        return axiosClient.get(`/orders/${encodeURIComponent(code)}`);
     },
 };
 
