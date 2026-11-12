@@ -145,7 +145,8 @@ Mỗi ngày một file, giữ 14 ngày. Thư mục này không đưa lên Git.
 | `dotnet run` / `dotnet test` báo file `FoodieAPI.exe` đang bị khóa | Một bản backend khác đang chạy: tắt nó (Ctrl+C), hoặc chạy test với `-c Release` |
 | Trang React báo "Không kết nối được máy chủ" | Backend chưa chạy, hoặc sai `VITE_API_URL` trong `.env.development` |
 | Đăng nhập React bị đăng xuất liên tục | Token cũ không còn hợp lệ (khóa JWT đã đổi): đăng nhập lại |
-| Muốn tạo lại CSDL từ đầu | Xóa CSDL `FoodieDB` (SSMS) rồi chạy lại backend; migration và dữ liệu mẫu sẽ tạo lại. Đổi mật khẩu admin bằng `dotnet user-secrets set "Seed:AdminPassword" "..."` trước khi chạy |
+| Muốn đổi mật khẩu admin | Đăng nhập React bằng tài khoản admin → **Tài khoản của tôi** → **Đổi mật khẩu**, hoặc gọi `PUT /api/profile/password` trong Swagger. `Seed:AdminPassword` chỉ dùng khi tạo admin lần đầu, sửa nó **không** đổi mật khẩu admin đã có |
+| Muốn tạo lại CSDL từ đầu | Xóa CSDL `FoodieDB` (SSMS) rồi chạy lại backend; migration và dữ liệu mẫu sẽ tạo lại, admin dùng mật khẩu đang lưu trong `Seed:AdminPassword` |
 
 ## Nhóm thực hiện
 

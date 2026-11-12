@@ -42,10 +42,6 @@ namespace FoodieAPI.Models
         public const string Website = "website";
         public const string Other = "other";
 
-        public static readonly string[] All = [Food, Delivery, Service, Website, Other];
-
-        public static bool IsValid(string? topic) => topic is not null && All.Contains(topic);
-
         public static string Label(string topic) => topic switch
         {
             Food => "Chất lượng món ăn",
