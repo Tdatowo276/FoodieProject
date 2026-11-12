@@ -18,6 +18,9 @@ Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot
 var builder = WebApplication.CreateBuilder(args);
 var config = builder.Configuration;
 
+// 0. Ghi log ra console + file logs/foodie-*.txt, logs/errors-*.txt (xem Common/LoggingSetup.cs)
+builder.AddFoodieLogging();
+
 // 1. Cơ sở dữ liệu (SQL Server)
 // Không viết cứng chuỗi kết nối trong mã nguồn. Giá trị được lấy từ:
 //   - Development: User Secrets   (dotnet user-secrets set "ConnectionStrings:Default" "...")
@@ -149,6 +152,9 @@ using (var scope = app.Services.CreateScope())
 }
 
 // 5. Middleware Pipeline
+// Ghi log mỗi request (đặt ngoài cùng để thấy mã kết quả cuối cùng)
+app.UseFoodieRequestLogging();
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseHsts();                  // trình duyệt chỉ dùng HTTPS cho site này

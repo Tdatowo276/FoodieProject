@@ -5,7 +5,7 @@
 | Hệ thống | Foodie: đặt đồ ăn trực tuyến (React + ASP.NET Core MVC + Web API + SQL Server) |
 | Phạm vi | Toàn bộ chức năng khách hàng, quản trị viên, Web API, bảo mật |
 | Loại kiểm thử | Tự động (xUnit: unit + integration) và thủ công (giao diện, thiết bị) |
-| Số test case | **123** (96 tự động + 27 thủ công); 96 test tự động gồm **138 lượt chạy** do có test chạy nhiều bộ dữ liệu |
+| Số test case | **124** (96 tự động + 28 thủ công); 96 test tự động gồm **138 lượt chạy** do có test chạy nhiều bộ dữ liệu |
 | Kết quả tự động gần nhất | **138 / 138 đạt** (ngày 12/11/2026) |
 
 ---
@@ -233,6 +233,7 @@ Những phần cần mắt người hoặc thiết bị thật (giao diện, hi�
 | MT-25 | Responsive trang Admin | DevTools → 375px: Tổng quan, Món ăn, Đơn hàng | Sidebar thành nút menu; bảng cuộn ngang trong khung, không tràn trang | | | |
 | MT-26 | Viết đánh giá (giao diện) | Đơn của tôi → đơn đã hoàn thành → "Đánh giá" → chọn sao, viết nhận xét → Gửi; sau đó Sửa và Xóa | Đánh giá hiện trong danh sách; điểm trung bình và số lượt trên trang món / thẻ món cập nhật | | | |
 | MT-27 | Món bán chạy | Hoàn thành vài đơn ở Admin → mở trang chủ và Admin → Tổng quan | Trang chủ có tab "Bán chạy"; Tổng quan có bảng Top 5 với thanh tỉ lệ | | | |
+| MT-28 | Ghi log ra file | Chạy backend; đăng nhập sai 1 lần, đặt 1 đơn, admin đổi trạng thái đơn; mở `FoodieBackend/FoodieAPI/logs/` | `foodie-<ngày>.txt` có dòng đăng nhập thất bại, tạo đơn, đổi trạng thái (kèm người thực hiện) và từng request HTTP; `errors-<ngày>.txt` chỉ có cảnh báo / lỗi | | | |
 
 ---
 
@@ -249,7 +250,7 @@ Những phần cần mắt người hoặc thiết bị thật (giao diện, hi�
 | 3.3 Web API RESTful + Swagger | Toàn bộ nhóm 2.4 → 2.10 (gọi qua HTTP), MT-23 |
 | 3.3 Upload file / ảnh | TC-UP-01 → 08, TC-PRD-11, TC-PRF-04, MT-19 |
 | 3.3 Xử lý ngoại lệ ở cấp ứng dụng | TC-PRD-04, TC-MVC-10 |
-| 3.3 Ghi log | Kiểm tra thủ công qua log khi chạy (đăng nhập sai, tạo đơn, thao tác admin) |
+| 3.3 Ghi log | MT-28 (file `logs/foodie-*.txt` và `logs/errors-*.txt`, Serilog) |
 | 3.4 Responsive | MT-24, MT-25 |
 | 3.5 Xác thực, phân quyền phía server | TC-AUTH-06 → 08, TC-AZ-01 → 05 |
 | 3.5 Băm mật khẩu | TC-AUTH-05 |

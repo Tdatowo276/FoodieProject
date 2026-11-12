@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace FoodieAPI.Tests.Infrastructure
 {
@@ -57,8 +56,8 @@ namespace FoodieAPI.Tests.Infrastructure
             builder.UseSetting("RateLimit:AuthPerMinute", AuthPerMinute.ToString());
             builder.UseSetting("RateLimit:FeedbackPer10Minutes", FeedbackPer10Minutes.ToString());
 
-            // Bớt log cho dễ đọc kết quả test
-            builder.ConfigureLogging(logging => logging.SetMinimumLevel(LogLevel.Warning));
+            // Không ghi log test vào thư mục logs/ của project (chỉ ghi ra console)
+            builder.UseSetting("FileLogging:Enabled", "false");
         }
 
         /// <summary>Client gửi request như trình duyệt: giữ cookie, KHÔNG tự đi theo chuyển hướng (để kiểm tra 302).</summary>
